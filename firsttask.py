@@ -1,6 +1,7 @@
 import pandas as pd
 
-data = pd.read_csv(r"C:\Users\Dev Bhatt\OneDrive\Desktop\loan_data_set.csv")
+data = pd.read_csv("Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv")
+print(data)
 #print(data)
 
-data.drop('Education', axis=1, inplace=True) 
+#data.drop('Idle Min', axis=1, inplace=True) 
