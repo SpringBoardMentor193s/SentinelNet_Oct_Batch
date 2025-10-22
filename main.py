@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import matplotlib as plt
+import seaborn as sns
 
 data = pd.read_csv("kdd_test.csv")
 
