@@ -1,18 +1,30 @@
 import pandas as pd
 
-data = pd.read_csv("Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv")
-print(data)
+train_data = pd.read_csv("kdd_train.csv")
+print(train_data)
 
-data.drop('Idle Min', axis=1, inplace=True) 
+test_data = pd.read_csv("kdd_test.csv")
+print(test_data)
 
-print(data.head())
+print(f"Shape: {train_data.shape}")
+print(train_data.head())
 
-print(data.tail())
+print(f"Shape: {test_data.shape}")
+print(test_data.head())
 
-print(data.info())
+
+train_data.drop('flag', axis=1, inplace=True) 
+
+print(train_data.head())
+
+print(train_data.tail(7))
+
+print(train_data.info())
 
 total_nulls = 0
-for column in data.columns:
-    total_nulls += data[column].isnull().sum()
+for column in train_data.columns:
+    total_nulls += train_data[column].isnull().sum()
 
 print(total_nulls)
+
+print(train_data.describe())
