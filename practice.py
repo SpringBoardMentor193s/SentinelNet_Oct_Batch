@@ -1,19 +1,19 @@
 import pandas as pd
 
-data = pd.read_csv("kdd_test.csv")
+df = pd.read_csv('kdd_train.csv')
+print(df.head())
+print(df.tail())
+print(df.info())
+print(df.describe())
 
-print("Original Dataset:")
-print(data.head())
+durations = df['duration']
+src_and_dst_bytes = df[['src_bytes', 'dst_bytes']]
+short_duration = df[df['duration'] < 100]
 
-column_to_delete = "hot"
-if column_to_delete in data.columns:
-    data.drop(column_to_delete, axis=1, inplace=True)
-    print(f"\nColumn '{column_to_delete}' deleted successfully.")
-else:
-    print(f"\nColumn '{column_to_delete}' not found in dataset.")
-
-print("\nDataset after deletion:")
-print(data.head())
-
-data.to_csv("updated_kdd_test.csv", index=False)
-print("\nUpdated dataset saved as 'updated_kdd_test.csv' in the same folder.")
+df.loc[df['protocol_type'] == 'tcp', ['service', 'flag']]
+df = df.rename(columns={'hot': 'hot_connections'})
+df['duration_in_seconds'] = df['duration'] / 60
+df = df.drop(columns=['num_outbound_cmds'])
+print(df.isnull().sum())
+df['duration'] = df['duration'].fillna(df['duration'].mean())
+df.to_csv('output.csv', index=False)
