@@ -45,7 +45,7 @@ labels = ['Normal', 'Attack']
 # Create a figure with 3 subplots
 plt.figure(figsize=(18, 5))
 
-# 1️⃣ Vertical Bar Chart
+# Vertical Bar Chart
 plt.subplot(1, 3, 1)
 sns.barplot(x=labels, y=counts.values, palette='pastel')
 plt.title('Vertical Bar: Network Traffic', fontsize=14)
@@ -53,7 +53,7 @@ plt.ylabel('Count', fontsize=12)
 for i, val in enumerate(counts.values):
     plt.text(i, val + 500, str(val), ha='center', fontsize=10)
 
-# 2️⃣ Horizontal Bar Chart
+# Horizontal Bar Chart
 plt.subplot(1, 3, 2)
 plt.barh(labels, counts.values, color=['#1f77b4', '#ff7f0e'])
 plt.title('Horizontal Bar: Network Traffic', fontsize=14)
@@ -61,7 +61,7 @@ plt.xlabel('Count', fontsize=12)
 for i, val in enumerate(counts.values):
     plt.text(val + 500, i, str(val), va='center', fontsize=10)
 
-# 3️⃣ Pie Chart
+# Pie Chart
 plt.subplot(1, 3, 3)
 plt.pie(counts.values, labels=labels, autopct='%1.1f%%',
         colors=['#ff9999','#66b3ff'], startangle=90, explode=(0.05,0.05), shadow=True)
@@ -69,7 +69,7 @@ plt.title('Pie Chart: Network Traffic', fontsize=14)
 
 plt.tight_layout()
 
-# 🔥 Save the figure to a file
+# Save the figure to a file
 plt.savefig('task3_output.png', dpi=300)  # PNG file
 # plt.savefig('network_traffic_distribution.pdf')  # Optional: PDF file
 
