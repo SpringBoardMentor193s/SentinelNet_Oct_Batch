@@ -88,3 +88,19 @@ plt.title('Normal vs Attack Distribution')
 plt.xlabel('Binary Attack (0=Normal, 1=Attack)')
 plt.ylabel('Count')
 plt.show()
+
+plt.figure(figsize=(8,5))
+sns.countplot(x="protocol_type", data=train_df, palette=['lightgreen', 'lightcoral', 'lightskyblue'])
+plt.title('Protocol Type Distribution')
+plt.xlabel('Protocol Type')
+plt.ylabel('Count') 
+plt.show()
+
+# -------------------- Scatter Plot --------------------  
+plt.figure(figsize=(6,5))
+sns.scatterplot(x='src_bytes', y='dst_bytes',legend=True, hue='binary_attack', data=train_df, palette=['cadetblue', 'crimson'])
+plt.title('Source Bytes vs Destination Bytes')
+plt.xlabel('Source Bytes')
+plt.ylabel('Destination Bytes')
+plt.show()
+
