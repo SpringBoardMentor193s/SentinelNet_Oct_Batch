@@ -24,43 +24,43 @@ train_df.drop("difficulty", axis=1, inplace=True)
 test_df=pd.read_csv("Dataset/KDD_Test.csv", header=None, names=column_names)
 test_df.drop("difficulty", axis=1, inplace=True)
 
-# Basic pandas functions in Train dataset
-print("\n----Number of rows and columns in Train_df----")
-print(train_df.shape)
+# # Basic pandas functions in Train dataset
+# print("\n----Number of rows and columns in Train_df----")
+# print(train_df.shape)
 
-print("\n----First 5 rows of Train_df----")
-print(train_df.head())
+# print("\n----First 5 rows of Train_df----")
+# print(train_df.head())
 
-print("\n----Last 5 rows of Train_df----")
-print(train_df.tail())
+# print("\n----Last 5 rows of Train_df----")
+# print(train_df.tail())
 
-print("\n----Structure of the Train_df----")
-print(train_df.info())
+# print("\n----Structure of the Train_df----")
+# print(train_df.info())
 
-print("\n----Statistical summary of numeric columns----")
-print(train_df.describe())
+# print("\n----Statistical summary of numeric columns----")
+# print(train_df.describe())
 
-print("\n----Missing values----")
-print(train_df.isnull())
+# print("\n----Missing values----")
+# print(train_df.isnull())
 
-print("\n----Sum of a column----")
-print(train_df['duration'].sum())
+# print("\n----Sum of a column----")
+# print(train_df['duration'].sum())
 
-# Basic pandas functions in Test dataset
-print("\n----First 5 rows of Test_df----")
-print(test_df.head())
+# # Basic pandas functions in Test dataset
+# print("\n----First 5 rows of Test_df----")
+# print(test_df.head())
 
-print("\n----Last 5 rows of Test_df----")
-print(test_df.tail())
+# print("\n----Last 5 rows of Test_df----")
+# print(test_df.tail())
 
-print("\n----Structure of the Test_df----")
-print(test_df.info())
+# print("\n----Structure of the Test_df----")
+# print(test_df.info())
 
-print("\n----Statistical summary of numeric colums----")
-print(test_df.describe())
+# print("\n----Statistical summary of numeric colums----")
+# print(test_df.describe())
 
-print("\n----Count----")
-print(train_df['class'].value_counts())
+# print("\n----Count----")
+# print(train_df['class'].value_counts())
 
 # Creating Binary classification in Train dataset
 train_df["binary_attack"]=train_df["class"].apply(lambda x:'0'if x == 'normal'else '1')
@@ -72,35 +72,59 @@ test_df["binary_attack"]=test_df["class"].apply(lambda x:'0'if x == 'normal'else
 print("\nclass and binary attack in Test_df")
 print(test_df[['class','binary_attack']])
 
-# Exploring the training dataset using basic plots
-# -------------------- Line Plot --------------------
-plt.figure(figsize=(8,5))
-sns.lineplot(x='duration', y='src_bytes', data=train_df, color='blue')
-plt.title('Duration vs Source Bytes')  
-plt.xlabel('Duration')
-plt.ylabel('Source Bytes')
-plt.show()
+# # Exploring the training dataset using basic plots
+# # -------------------- Line Plot --------------------
+# plt.figure(figsize=(8,5))
+# sns.lineplot(x='duration', y='src_bytes', data=train_df, color='blue')
+# plt.title('Duration vs Source Bytes')  
+# plt.xlabel('Duration')
+# plt.ylabel('Source Bytes')
+# plt.show()
 
-# -------------------- Countplot--------------------
-plt.figure(figsize=(6,5))
-sns.countplot(x='binary_attack', hue='binary_attack', legend=False, data=train_df, palette=['cadetblue', 'crimson'])
-plt.title('Normal vs Attack Distribution')
-plt.xlabel('Binary Attack (0=Normal, 1=Attack)')
-plt.ylabel('Count')
-plt.show()
+# # -------------------- Countplot--------------------
+# plt.figure(figsize=(6,5))
+# sns.countplot(x='binary_attack', hue='binary_attack', legend=False, data=train_df, palette=['cadetblue', 'crimson'])
+# plt.title('Normal vs Attack Distribution')
+# plt.xlabel('Binary Attack (0=Normal, 1=Attack)')
+# plt.ylabel('Count')
+# plt.show()
 
-plt.figure(figsize=(8,5))
-sns.countplot(x="protocol_type", data=train_df, palette=['lightgreen', 'lightcoral', 'lightskyblue'])
-plt.title('Protocol Type Distribution')
-plt.xlabel('Protocol Type')
-plt.ylabel('Count') 
-plt.show()
+# plt.figure(figsize=(8,5))
+# sns.countplot(x="protocol_type", data=train_df, palette=['lightgreen', 'lightcoral', 'lightskyblue'])
+# plt.title('Protocol Type Distribution')
+# plt.xlabel('Protocol Type')
+# plt.ylabel('Count') 
+# plt.show()
 
-# -------------------- Scatter Plot --------------------  
-plt.figure(figsize=(6,5))
-sns.scatterplot(x='src_bytes', y='dst_bytes',legend=True, hue='binary_attack', data=train_df, palette=['cadetblue', 'crimson'])
-plt.title('Source Bytes vs Destination Bytes')
-plt.xlabel('Source Bytes')
-plt.ylabel('Destination Bytes')
-plt.show()
+# # -------------------- Scatter Plot --------------------  
+# plt.figure(figsize=(6,5))
+# sns.scatterplot(x='src_bytes', y='dst_bytes',legend=True, hue='binary_attack', data=train_df, palette=['cadetblue', 'crimson'])
+# plt.title('Source Bytes vs Destination Bytes')
+# plt.xlabel('Source Bytes')
+# plt.ylabel('Destination Bytes')
+# plt.show()
 
+# -------------------- One-Hot Encoding --------------------
+X_train_raw=train_df.drop(['class', 'binary_attack'], axis=1)
+Y_train=train_df['binary_attack']
+
+X_test_raw=test_df.drop(['class', 'binary_attack'], axis=1)
+Y_test=test_df['binary_attack']
+
+categorical_cols=['protocol_type', 'service', 'flag']
+numerical_cols=X_train_raw.columns.drop(categorical_cols)
+
+X_train_encoded=pd.get_dummies(X_train_raw, columns=categorical_cols, drop_first=True)
+X_test_encoded=pd.get_dummies(X_test_raw, columns=categorical_cols, drop_first=True)
+
+train_cols=X_train_encoded.columns
+test_cols=X_test_encoded.columns
+
+for col in train_cols:
+    if col not in test_cols:
+        X_test_encoded[col]=0
+        
+X_test_encoded=X_test_encoded[train_cols]
+
+print("Train dataset after encoding:", X_train_encoded.shape)
+print("Test dataset after encoding:", X_test_encoded.shape)
