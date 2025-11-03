@@ -147,3 +147,26 @@ print(X_train_scaled.head())
 print("Scaled Test Data:")
 print(X_test_scaled.head())
 
+# -------------------- Simple Imputer --------------------
+from sklearn.impute import SimpleImputer
+
+imputer = SimpleImputer(strategy='mean')
+numerical_cols = X_train_raw.columns.drop(categorical_cols)
+
+X_train_imputed = X_train_scaled.copy()
+X_test_imputed = X_test_scaled.copy()
+
+X_train_imputed[numerical_cols] = imputer.fit_transform(X_train_scaled[numerical_cols])
+X_test_imputed[numerical_cols] = imputer.transform(X_test_scaled[numerical_cols])
+
+print("Imputed Train Data:")
+print(X_train_imputed.head())
+
+# --------------------- SMOTE Analysis --------------------
+from imblearn.over_sampling import SMOTE
+
+smote = SMOTE(random_state=42)
+X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_imputed, Y_train)
+
+print("Original Train dataset shape:", Y_train.value_counts())
+print("Resampled Train dataset shape:", Y_train_resampled.value_counts())
