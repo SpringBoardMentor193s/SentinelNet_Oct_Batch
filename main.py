@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
@@ -160,3 +161,45 @@ X_test[numeric_cols] = scaler.transform(X_test[numeric_cols])
 print("Standardization completed successfully!")
 
 print("\n✅ All preprocessing steps (Imputer, SMOTE, Scaler) applied successfully!")
+print("\n--- Additional Preprocessing Enhancements ---")
+
+n_before = X_train_resampled.shape[1]
+constant_cols = [col for col in X_train_resampled.columns if X_train_resampled[col].nunique() == 1]
+duplicate_cols = X_train_resampled.T[X_train_resampled.T.duplicated()].index.tolist()
+
+X_train_resampled.drop(columns=constant_cols + duplicate_cols, inplace=True, errors='ignore')
+X_test.drop(columns=constant_cols + duplicate_cols, inplace=True, errors='ignore')
+
+print(f"Removed {len(constant_cols)} constant and {len(duplicate_cols)} duplicate columns.")
+print(f"Columns reduced from {n_before} to {X_train_resampled.shape[1]}.\n")
+
+for col in numeric_cols:
+    if col in X_train_resampled.columns:
+        Q1 = X_train_resampled[col].quantile(0.25)
+        Q3 = X_train_resampled[col].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        X_train_resampled[col] = X_train_resampled[col].clip(lower_bound, upper_bound)
+        X_test[col] = X_test[col].clip(lower_bound, upper_bound)
+print("Outliers capped successfully!\n")
+
+from sklearn.feature_selection import VarianceThreshold
+selector = VarianceThreshold(threshold=0.01)
+X_train_resampled = pd.DataFrame(selector.fit_transform(X_train_resampled),
+                                 columns=X_train_resampled.columns[selector.get_support()])
+X_test = X_test[X_train_resampled.columns]
+print("Low variance features removed!\n")
+
+corr_matrix = X_train_resampled.corr().abs()
+upper_triangle = corr_matrix.where(
+    np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
+)
+to_drop = [column for column in upper_triangle.columns if any(upper_triangle[column] > 0.9)]
+X_train_resampled.drop(columns=to_drop, inplace=True, errors='ignore')
+X_test.drop(columns=to_drop, inplace=True, errors='ignore')
+print(f"Removed {len(to_drop)} highly correlated features.\n")
+
+final_output = r"C://Users//S Rakshita//Desktop//SENITNELNET//SentinelNet_Oct_Batch//final_preprocessed_data.csv"
+X_train_resampled.to_csv(final_output, index=False)
+print(f"✅ Final preprocessed training data saved successfully at: {final_output}")
