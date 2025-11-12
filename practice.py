@@ -170,3 +170,26 @@ X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_imputed, Y_tra
 
 print("Original Train dataset shape:", Y_train.value_counts())
 print("Resampled Train dataset shape:", Y_train_resampled.value_counts())
+
+# -------------------- Model Training --------------------
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+models = {
+    "Logistic Regression": LogisticRegression(random_state =42, max_iter=1000),
+    "Decision Tree": DecisionTreeClassifier(),
+    "Random Forest": RandomForestClassifier()
+}
+
+for name, model in models.items():
+    print(f"\nTraining {name}...")
+    model.fit(X_train_scaled, Y_train)
+    print(name + " trained.")
+
+for name, model in models.items():
+    print(f"\nEvaluating {name}...")
+    Y_pred = model.predict(X_test_scaled)
+    accuracy = accuracy_score(Y_test, Y_pred)
+    print(f"{name} Accuracy: {accuracy*100:.2f}%")
