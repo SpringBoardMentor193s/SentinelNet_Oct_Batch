@@ -203,3 +203,83 @@ print(f"Removed {len(to_drop)} highly correlated features.\n")
 final_output = r"C://Users//S Rakshita//Desktop//SENITNELNET//SentinelNet_Oct_Batch//final_preprocessed_data.csv"
 X_train_resampled.to_csv(final_output, index=False)
 print(f"✅ Final preprocessed training data saved successfully at: {final_output}")
+
+print("\n--- Machine Learning Model Training ---")
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+import xgboost as xgb
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+model_results = {}
+
+def evaluate_model(name, model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average='weighted', zero_division=0)
+    rec = recall_score(y_test, y_pred, average='weighted', zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
+    model_results[name] = [acc, prec, rec, f1]
+    print(f"\n{name} Results:")
+    print(f"Accuracy  : {acc:.4f}")
+    print(f"Precision : {prec:.4f}")
+    print(f"Recall    : {rec:.4f}")
+    print(f"F1-Score  : {f1:.4f}")
+    print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+    print("\nClassification Report:\n", classification_report(y_test, y_pred, zero_division=0))
+
+print("\nTraining Logistic Regression...")
+lr_model = LogisticRegression(max_iter=1000, random_state=42)
+lr_model.fit(X_train_resampled, y_train_resampled)
+evaluate_model("Logistic Regression", lr_model, X_test, y_test)
+
+print("\nTraining Random Forest...")
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train_resampled, y_train_resampled)
+evaluate_model("Random Forest", rf_model, X_test, y_test)
+
+print("\nTraining XGBoost Classifier...")
+xgb_model = XGBClassifier(
+    n_estimators=150,
+    learning_rate=0.1,
+    max_depth=6,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    random_state=42,
+    use_label_encoder=False,
+    eval_metric='mlogloss'
+)
+xgb_model.fit(X_train_resampled, y_train_resampled)
+evaluate_model("XGBoost", xgb_model, X_test, y_test)
+
+print("\nTraining Support Vector Machine...")
+svm_model = SVC(kernel='rbf', random_state=42)
+svm_model.fit(X_train_resampled, y_train_resampled)
+evaluate_model("SVM", svm_model, X_test, y_test)
+
+print("\nTraining K-Nearest Neighbors...")
+knn_model = KNeighborsClassifier(n_neighbors=5)
+knn_model.fit(X_train_resampled, y_train_resampled)
+evaluate_model("KNN", knn_model, X_test, y_test)
+
+print("\n--- Model Performance Summary ---")
+results_df = pd.DataFrame(model_results, index=["Accuracy", "Precision", "Recall", "F1-Score"]).T
+print(results_df)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=results_df.index, y=results_df["Accuracy"])
+plt.title("Model Accuracy Comparison", fontsize=16)
+plt.ylabel("Accuracy")
+plt.xlabel("Models")
+plt.xticks(rotation=45)
+plt.show()
+
+model_results_path = r"C://Users//S Rakshita//Desktop//SENITNELNET//SentinelNet_Oct_Batch//model_results.csv"
+results_df.to_csv(model_results_path)
+print(f"\nModel performance results saved at: {model_results_path}")
