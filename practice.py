@@ -193,3 +193,17 @@ for name, model in models.items():
     Y_pred = model.predict(X_test_scaled)
     accuracy = accuracy_score(Y_test, Y_pred)
     print(f"{name} Accuracy: {accuracy*100:.2f}%")
+
+# -------------------- Confusion Matrix --------------------
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+for name, model in models.items():
+    print(f"\nConfusion Matrix for {name}:")
+    Y_pred = model.predict(X_test_scaled)
+    cm = confusion_matrix(Y_test, Y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title(f'Confusion Matrix for {name}')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.show()
