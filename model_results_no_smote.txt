@@ -1,0 +1,108 @@
+MODEL PERFORMANCE SUMMARY (No SMOTE)
+============================================================
+
+MODEL: Linear Regression (OLS)
+----------------------------------------
+Accuracy         : 0.8962
+Precision (Attack): 0.9550
+Recall (Attack)   : 0.8322
+F1-Score (Attack) : 0.8894
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |  10802     443
+Actual Attack  |   1896    9403
+
+----------------------------------------
+
+MODEL: Gradient Descent (SGD)
+----------------------------------------
+Accuracy         : 0.6802
+Precision (Attack): 0.7530
+Recall (Attack)   : 0.5387
+F1-Score (Attack) : 0.6281
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |   9248    1997
+Actual Attack  |   5212    6087
+
+----------------------------------------
+
+MODEL: Logistic Regression
+----------------------------------------
+Accuracy         : 0.8935
+Precision (Attack): 0.9497
+Recall (Attack)   : 0.8316
+F1-Score (Attack) : 0.8867
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |  10747     498
+Actual Attack  |   1903    9396
+
+----------------------------------------
+
+MODEL: Naïve Bayes (Gaussian)
+----------------------------------------
+Accuracy         : 0.8522
+Precision (Attack): 0.9021
+Recall (Attack)   : 0.7910
+F1-Score (Attack) : 0.8429
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |  10275     970
+Actual Attack  |   2362    8937
+
+----------------------------------------
+
+MODEL: Decision Tree
+----------------------------------------
+Accuracy         : 0.9307
+Precision (Attack): 0.9902
+Recall (Attack)   : 0.8703
+F1-Score (Attack) : 0.9264
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |  11148      97
+Actual Attack  |   1465    9834
+
+----------------------------------------
+
+MODEL: Random Forest
+----------------------------------------
+Accuracy         : 0.9287
+Precision (Attack): 0.9915
+Recall (Attack)   : 0.8651
+F1-Score (Attack) : 0.9240
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |  11161      84
+Actual Attack  |   1524    9775
+
+----------------------------------------
+
+MODEL: XGBoost
+----------------------------------------
+Accuracy         : 0.9345
+Precision (Attack): 0.9908
+Recall (Attack)   : 0.8775
+F1-Score (Attack) : 0.9307
+
+Confusion Matrix:
+                Predicted
+                Normal  Attack
+Actual Normal  |  11153      92
+Actual Attack  |   1384    9915
+
+----------------------------------------
+
