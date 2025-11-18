@@ -63,12 +63,12 @@ print("\n----Count----")
 print(train_df['class'].value_counts())
 
 # Creating Binary classification in Train dataset
-train_df["binary_attack"]=train_df["class"].apply(lambda x:'0'if x == 'normal'else '1')
+train_df["binary_attack"]=train_df["class"].apply(lambda x:0 if x == 'normal'else 1)
 print("\nclass and binary attack in Train_df")
 print(train_df[['class','binary_attack']])
 
 # Creating binary classification in Test dataset
-test_df["binary_attack"]=test_df["class"].apply(lambda x:'0'if x == 'normal'else '1')
+test_df["binary_attack"]=test_df["class"].apply(lambda x:0 if x == 'normal'else 1)
 print("\nclass and binary attack in Test_df")
 print(test_df[['class','binary_attack']])
 
