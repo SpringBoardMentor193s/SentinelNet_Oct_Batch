@@ -1,4 +1,5 @@
 # 1 IMPORT REQUIRED LIBRARIES
+
 import pandas as pd
 import numpy as np
 
@@ -20,6 +21,7 @@ import seaborn as sns
 
 
 # 2 LOAD DATA
+
 train_df = pd.read_csv("kdd_train.csv")
 test_df  = pd.read_csv("kdd_test.csv")
 
@@ -28,6 +30,7 @@ print("Testing Set Shape :", test_df.shape)
 
 
 # 3 CREATE BINARY TARGET COLUMN
+
 train_df["attack_binary"] = train_df["labels"].apply(lambda x: 0 if x == "normal" else 1)
 test_df["attack_binary"]  = test_df["labels"].apply(lambda x: 0 if x == "normal" else 1)
 
@@ -43,6 +46,7 @@ FEATURES = [col for col in train_df.columns if col not in ["attack_binary", "lab
 
 
 # 4 SPLIT INTO X AND y
+
 X_train = train_df[FEATURES]
 y_train = train_df[TARGET]
 
@@ -51,12 +55,14 @@ y_test  = test_df[TARGET]
 
 
 # 5 SCALE FEATURES
+
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled  = scaler.transform(X_test)
 
 
 # 6 FEATURE CORRELATION HEATMAP (ONLY NUMERIC COLUMNS)
+
 numeric_df = train_df.select_dtypes(include=['number'])
 
 plt.figure(figsize=(15, 12))
@@ -66,6 +72,7 @@ plt.show()
 
 
 # 7 DEFINE MODELS
+
 models = {
     "OLS Regression": LinearRegression(),
     "Stochastic GD": SGDClassifier(max_iter=2000, tol=1e-4, random_state=42),
@@ -77,6 +84,7 @@ models = {
 
 
 # 8 TRAIN AND EVALUATE ALL MODELS
+
 results = {}
 
 for name, model in models.items():
@@ -107,6 +115,7 @@ for name, model in models.items():
 
 
 # 9 PLOT CONFUSION MATRICES
+
 rows, cols = 3, 2
 fig, axes = plt.subplots(rows, cols, figsize=(14, 15))
 axes = axes.flatten()
@@ -124,6 +133,7 @@ plt.show()
 
 
 # 10 SAVE TEXT SUMMARY
+
 output_file = "model_results_summary.txt"
 
 with open(output_file, "w") as f:
