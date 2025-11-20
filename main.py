@@ -20,11 +20,11 @@ column_names = [
 
 train_df=pd.read_csv("Dataset/KDD_Train.csv", header=None, names=column_names)
 train_df.drop("difficulty", axis=1, inplace=True)
-print("\nTrain Dataset Shape:", train_df.shape)
+# print("\nTrain Dataset Shape:", train_df.shape)
 
 test_df=pd.read_csv("Dataset/KDD_Test.csv", header=None, names=column_names)
 test_df.drop("difficulty", axis=1, inplace=True)
-print("Test Dataset Shape:", test_df.shape)
+# print("Test Dataset Shape:", test_df.shape)
 
 # -------------------- Creating Binary Attack Column in Train dataset --------------------
 train_df["binary_attack"]=train_df["class"].apply(lambda x : 0 if x == 'normal'else 1)
@@ -56,8 +56,8 @@ for col in train_cols:
         
 X_test_encoded=X_test_encoded[train_cols]
 
-print("\nTrain dataset after encoding:", X_train_encoded.shape)
-print("Test dataset after encoding:", X_test_encoded.shape)
+# print("\nTrain dataset after encoding:", X_train_encoded.shape)
+# print("Test dataset after encoding:", X_test_encoded.shape)
 
 # -------------------- Standard Scaler ---------------------
 from sklearn.preprocessing import StandardScaler
@@ -154,29 +154,72 @@ models = {
     'AdaBoost': AdaBoostClassifier()   
 } 
 
-results = []
 for name,model in models.items():
     print(f"\nTraining {name}...")
     model.fit(X_train_resampled, Y_train_resampled)
     print(name + " model trained successfully.")
-    
+
+# -------------------- Testing the Models using Train Dataset ---------------------
+results = []
 for name,model in models.items():
-    predictions = model.predict(X_test_scaled)
-    accuracy=accuracy_score(Y_test, predictions)
-    precision=precision_score(Y_test, predictions, pos_label=1) 
-    recall=recall_score(Y_test, predictions, pos_label=1)
-    f1=f1_score(Y_test, predictions, pos_label=1)
+    predictions = model.predict(X_train_scaled)
+    accuracy=accuracy_score(Y_train, predictions)*100
+    precision=precision_score(Y_train, predictions, pos_label=1) 
+    recall=recall_score(Y_train, predictions, pos_label=1)
+    f1=f1_score(Y_train, predictions, pos_label=1)
     results.append([name, accuracy, precision, recall, f1])
 
-results_df = pd.DataFrame(results, columns=['Model', 'Accuracy', 'Precision', 'Recall', 'F1-Score']).round(4)
-print("\nModel Evaluation Results:\n")
+results_df = pd.DataFrame(results, columns=['Model', 'Accuracy', 'Precision', 'Recall', 'F1-Score'])
+results_df['Accuracy'] = results_df['Accuracy'].map(lambda x: f"{x:.2f}%")
+
+for col in ['Precision', 'Recall', 'F1-Score']:
+    results_df[col] = results_df[col].map(lambda x: f"{x:.4f}")
+
+print("\nModel Evaluation Results on Train Dataset:\n")
 
 table_str = tabulate(results_df, headers='keys', tablefmt='fancy_grid', showindex=False)
 print(table_str)
 
-with open('Model Evaluation Results.txt', 'w', encoding='utf-8') as f:
+with open('Train Dataset Results.txt', 'w', encoding='utf-8') as f:
     f.write(table_str)
-print("Evaluation metrics saved as 'Model Evaluation Results.txt'")
+print("Evaluation metrics saved as 'Train Dataset Results.txt'")
+
+# -------------------- Confusion Matrix ---------------------
+for name,model in models.items():
+    predictions = model.predict(X_train_scaled)
+    cm = confusion_matrix(Y_train, predictions)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title(f'Confusion Matrix for {name}')
+    plt.tight_layout()
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
+    plt.show()
+
+# -------------------- Testing the Models using Test Dataset ---------------------   
+Results = []
+for name,model in models.items():
+    predictions = model.predict(X_test_scaled)
+    accuracy=accuracy_score(Y_test, predictions)*100
+    precision=precision_score(Y_test, predictions, pos_label=1) 
+    recall=recall_score(Y_test, predictions, pos_label=1)
+    f1=f1_score(Y_test, predictions, pos_label=1)
+    Results.append([name, accuracy, precision, recall, f1])
+
+Results_df = pd.DataFrame(Results, columns=['Model', 'Accuracy', 'Precision', 'Recall', 'F1-Score'])
+Results_df['Accuracy'] = Results_df['Accuracy'].map(lambda x: f"{x:.2f}%")
+
+for col in ['Precision', 'Recall', 'F1-Score']:
+    Results_df[col] = Results_df[col].map(lambda x: f"{x:.4f}")
+
+print("\nModel Evaluation Results on Test Dataset:\n")
+
+table = tabulate(Results_df, headers='keys', tablefmt='fancy_grid', showindex=False)
+print(table)
+
+with open('Test Dataset Results.txt', 'w', encoding='utf-8') as f:
+    f.write(table)
+print("Evaluation metrics saved as 'Test Dataset Results.txt'")
 
 # -------------------- Confusion Matrix ---------------------
 for name,model in models.items():
