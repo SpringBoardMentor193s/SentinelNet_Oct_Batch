@@ -1,0 +1,11 @@
+Model,Dataset,Accuracy,Precision,Recall,F1
+Logistic Regression,Train (SMOTE),0.9727,0.9788,0.9662,0.9725
+Logistic Regression,Test,0.7455,0.9142,0.6102,0.7319
+Decision Tree,Train (SMOTE),0.9987,0.999,0.9985,0.9987
+Decision Tree,Test,0.8007,0.9568,0.6806,0.7954
+Random Forest,Train (SMOTE),0.9986,0.9994,0.9977,0.9986
+Random Forest,Test,0.7631,0.9673,0.6042,0.7438
+Gradient Boosting,Train (SMOTE),0.9959,0.996,0.9958,0.9959
+Gradient Boosting,Test,0.7956,0.9695,0.6617,0.7865
+SVM (RBF),Train (SMOTE),0.9937,0.9923,0.995,0.9937
+SVM (RBF),Test,0.7689,0.959,0.6204,0.7534
