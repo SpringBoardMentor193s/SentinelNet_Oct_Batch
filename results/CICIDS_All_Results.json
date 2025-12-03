@@ -1,0 +1,242 @@
+[
+    {
+        "Model":"Logistic Regression",
+        "Accuracy":"99.29%",
+        "Sensitivity":"99.88%",
+        "Specificity":"98.70%",
+        "F1 Score":"99.29%",
+        "AUC":"0.9994",
+        "Set":"Train",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Stochastic Gradient Descent (SGDClassifier)",
+        "Accuracy":"98.88%",
+        "Sensitivity":"99.90%",
+        "Specificity":"97.87%",
+        "F1 Score":"98.90%",
+        "AUC":"0.9994",
+        "Set":"Train",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Naive Bayes",
+        "Accuracy":"83.79%",
+        "Sensitivity":"94.98%",
+        "Specificity":"72.60%",
+        "F1 Score":"85.42%",
+        "AUC":"0.9590",
+        "Set":"Train",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Decision Tree",
+        "Accuracy":"100.00%",
+        "Sensitivity":"100.00%",
+        "Specificity":"100.00%",
+        "F1 Score":"100.00%",
+        "AUC":"1.0000",
+        "Set":"Train",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Random Forest",
+        "Accuracy":"100.00%",
+        "Sensitivity":"100.00%",
+        "Specificity":"100.00%",
+        "F1 Score":"100.00%",
+        "AUC":"1.0000",
+        "Set":"Train",
+        "Type":"Binary"
+    },
+    {
+        "Model":"XGBoost",
+        "Accuracy":"100.00%",
+        "Sensitivity":"100.00%",
+        "Specificity":"100.00%",
+        "F1 Score":"100.00%",
+        "AUC":"1.0000",
+        "Set":"Train",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Random Forest",
+        "Accuracy":"99.98%",
+        "Sensitivity":"99.96%",
+        "Specificity":"99.99%",
+        "F1 Score":"99.98%",
+        "AUC":"1.0000",
+        "Set":"Test",
+        "Type":"Binary"
+    },
+    {
+        "Model":"XGBoost",
+        "Accuracy":"99.98%",
+        "Sensitivity":"99.98%",
+        "Specificity":"99.98%",
+        "F1 Score":"99.98%",
+        "AUC":"1.0000",
+        "Set":"Test",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Decision Tree",
+        "Accuracy":"99.96%",
+        "Sensitivity":"99.97%",
+        "Specificity":"99.96%",
+        "F1 Score":"99.96%",
+        "AUC":"0.9997",
+        "Set":"Test",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Logistic Regression",
+        "Accuracy":"99.28%",
+        "Sensitivity":"99.86%",
+        "Specificity":"98.70%",
+        "F1 Score":"99.28%",
+        "AUC":"0.9993",
+        "Set":"Test",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Stochastic Gradient Descent (SGDClassifier)",
+        "Accuracy":"98.88%",
+        "Sensitivity":"99.88%",
+        "Specificity":"97.87%",
+        "F1 Score":"98.89%",
+        "AUC":"0.9993",
+        "Set":"Test",
+        "Type":"Binary"
+    },
+    {
+        "Model":"Naive Bayes",
+        "Accuracy":"83.78%",
+        "Sensitivity":"94.98%",
+        "Specificity":"72.58%",
+        "F1 Score":"85.41%",
+        "AUC":"0.9585",
+        "Set":"Test",
+        "Type":"Binary"
+    },
+    {
+        "Model":"MC_RandomForest",
+        "Accuracy":"99.98%",
+        "Sensitivity":"100.00%",
+        "Specificity":"100.00%",
+        "F1 Score":"99.98%",
+        "AUC":"1.0000",
+        "Set":"Train",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_XGBoost",
+        "Accuracy":"99.97%",
+        "Sensitivity":"99.90%",
+        "Specificity":"99.99%",
+        "F1 Score":"99.90%",
+        "AUC":"1.0000",
+        "Set":"Train",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_DecisionTree",
+        "Accuracy":"99.77%",
+        "Sensitivity":"99.91%",
+        "Specificity":"99.95%",
+        "F1 Score":"99.12%",
+        "AUC":"0.9999",
+        "Set":"Train",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_SGDClassifier",
+        "Accuracy":"94.31%",
+        "Sensitivity":"88.99%",
+        "Specificity":"98.39%",
+        "F1 Score":"64.32%",
+        "AUC":"0.9941",
+        "Set":"Train",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_LogisticRegression",
+        "Accuracy":"92.70%",
+        "Sensitivity":"95.14%",
+        "Specificity":"98.60%",
+        "F1 Score":"71.94%",
+        "AUC":"0.9949",
+        "Set":"Train",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_NaiveBayes",
+        "Accuracy":"56.57%",
+        "Sensitivity":"70.19%",
+        "Specificity":"89.17%",
+        "F1 Score":"53.70%",
+        "AUC":"0.9467",
+        "Set":"Train",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_XGBoost",
+        "Accuracy":"99.94%",
+        "Sensitivity":"99.52%",
+        "Specificity":"99.98%",
+        "F1 Score":"99.57%",
+        "AUC":"0.9998",
+        "Set":"Test",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_RandomForest",
+        "Accuracy":"99.93%",
+        "Sensitivity":"99.45%",
+        "Specificity":"99.98%",
+        "F1 Score":"99.54%",
+        "AUC":"0.9995",
+        "Set":"Test",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_DecisionTree",
+        "Accuracy":"99.71%",
+        "Sensitivity":"99.34%",
+        "Specificity":"99.93%",
+        "F1 Score":"98.62%",
+        "AUC":"0.9970",
+        "Set":"Test",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_SGDClassifier",
+        "Accuracy":"94.29%",
+        "Sensitivity":"88.51%",
+        "Specificity":"98.38%",
+        "F1 Score":"64.07%",
+        "AUC":"0.9938",
+        "Set":"Test",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_LogisticRegression",
+        "Accuracy":"92.65%",
+        "Sensitivity":"94.91%",
+        "Specificity":"98.59%",
+        "F1 Score":"70.17%",
+        "AUC":"0.9943",
+        "Set":"Test",
+        "Type":"Multi-Class"
+    },
+    {
+        "Model":"MC_NaiveBayes",
+        "Accuracy":"56.71%",
+        "Sensitivity":"69.77%",
+        "Specificity":"89.20%",
+        "F1 Score":"53.61%",
+        "AUC":"0.9456",
+        "Set":"Test",
+        "Type":"Multi-Class"
+    }
+]
