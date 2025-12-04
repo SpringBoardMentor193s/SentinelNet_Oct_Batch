@@ -379,7 +379,6 @@ MIT License (see LICENSE)
 
 ----
 
-Vaageswari College of Engineering
 
 📧 laxmisahityareddy18@gmail.com
 
