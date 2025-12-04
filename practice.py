@@ -1,209 +1,334 @@
+# import pandas as pd
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+
+# column_names = [
+#     'duration', 'protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes',
+#     'land', 'wrong_fragment', 'urgent', 'hot', 'num_failed_logins',
+#     'logged_in', 'num_compromised', 'root_shell', 'su_attempted',
+#     'num_root', 'num_file_creations', 'num_shells', 'num_access_files',
+#     'num_outbound_cmds', 'is_host_login', 'is_guest_login', 'count',
+#     'srv_count', 'serror_rate', 'srv_serror_rate', 'rerror_rate',
+#     'srv_rerror_rate', 'same_srv_rate', 'diff_srv_rate', 'srv_diff_host_rate',
+#     'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate',
+#     'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
+#     'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
+#     'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
+#     'dst_host_srv_rerror_rate', 'class', 'difficulty'
+# ]
+
+# train_df=pd.read_csv("Dataset/KDD_Train.csv", header=None, names=column_names)
+# train_df.drop("difficulty", axis=1, inplace=True)
+
+# test_df=pd.read_csv("Dataset/KDD_Test.csv", header=None, names=column_names)
+# test_df.drop("difficulty", axis=1, inplace=True)
+
+# # Basic pandas functions in Train dataset
+# print("\n----Number of rows and columns in Train_df----")
+# print(train_df.shape)
+
+# print("\n----First 5 rows of Train_df----")
+# print(train_df.head())
+
+# print("\n----Last 5 rows of Train_df----")
+# print(train_df.tail())
+
+# print("\n----Structure of the Train_df----")
+# print(train_df.info())
+
+# print("\n----Statistical summary of numeric columns----")
+# print(train_df.describe())
+
+# print("\n----Missing values----")
+# print(train_df.isnull())
+
+# print("\n----Sum of a column----")
+# print(train_df['duration'].sum())
+
+# # Basic pandas functions in Test dataset
+# print("\n----First 5 rows of Test_df----")
+# print(test_df.head())
+
+# print("\n----Last 5 rows of Test_df----")
+# print(test_df.tail())
+
+# print("\n----Structure of the Test_df----")
+# print(test_df.info())
+
+# print("\n----Statistical summary of numeric colums----")
+# print(test_df.describe())
+
+# print("\n----Count----")
+# print(train_df['class'].value_counts())
+
+# # Creating Binary classification in Train dataset
+# train_df["binary_attack"]=train_df["class"].apply(lambda x:0 if x == 'normal'else 1)
+# print("\nclass and binary attack in Train_df")
+# print(train_df[['class','binary_attack']])
+
+# # Creating binary classification in Test dataset
+# test_df["binary_attack"]=test_df["class"].apply(lambda x:0 if x == 'normal'else 1)
+# print("\nclass and binary attack in Test_df")
+# print(test_df[['class','binary_attack']])
+
+# # Exploring the training dataset using basic plots
+# # -------------------- Line Plot --------------------
+# plt.figure(figsize=(8,5))
+# sns.lineplot(x='duration', y='src_bytes', data=train_df, color='blue')
+# plt.title('Duration vs Source Bytes')  
+# plt.xlabel('Duration')
+# plt.ylabel('Source Bytes')
+# plt.show()
+
+# # -------------------- Countplot--------------------
+# plt.figure(figsize=(6,5))
+# sns.countplot(x='binary_attack', hue='binary_attack', legend=False, data=train_df, palette=['cadetblue', 'crimson'])
+# plt.title('Normal vs Attack Distribution')
+# plt.xlabel('Binary Attack (0=Normal, 1=Attack)')
+# plt.ylabel('Count')
+# plt.show()
+
+# plt.figure(figsize=(8,5))
+# sns.countplot(x="protocol_type", data=train_df, palette=['lightgreen', 'lightcoral', 'lightskyblue'])
+# plt.title('Protocol Type Distribution')
+# plt.xlabel('Protocol Type')
+# plt.ylabel('Count') 
+# plt.show()
+
+# # -------------------- Scatter Plot --------------------  
+# plt.figure(figsize=(6,5))
+# sns.scatterplot(x='src_bytes', y='dst_bytes',legend=True, hue='binary_attack', data=train_df, palette=['cadetblue', 'crimson'])
+# plt.title('Source Bytes vs Destination Bytes')
+# plt.xlabel('Source Bytes')
+# plt.ylabel('Destination Bytes')
+# plt.show()
+
+# # -------------------- One-Hot Encoding --------------------
+# X_train_raw=train_df.drop(['class', 'binary_attack'], axis=1)
+# Y_train=train_df['binary_attack']
+
+# X_test_raw=test_df.drop(['class', 'binary_attack'], axis=1)
+# Y_test=test_df['binary_attack']
+
+# categorical_cols=['protocol_type', 'service', 'flag']
+# numerical_cols=X_train_raw.columns.drop(categorical_cols)
+
+# X_train_encoded=pd.get_dummies(X_train_raw, columns=categorical_cols, drop_first=True)
+# X_test_encoded=pd.get_dummies(X_test_raw, columns=categorical_cols, drop_first=True)
+
+# train_cols=X_train_encoded.columns
+# test_cols=X_test_encoded.columns
+
+# for col in train_cols:
+#     if col not in test_cols:
+#         X_test_encoded[col]=0
+        
+# X_test_encoded=X_test_encoded[train_cols]
+
+# print("Train dataset after encoding:", X_train_encoded.shape)
+# print("Test dataset after encoding:", X_test_encoded.shape)
+
+# # -------------------- Standardscaler --------------------
+# from sklearn.preprocessing import StandardScaler
+
+# numerical_cols = X_train_raw.columns.drop(categorical_cols)
+
+# X_train_scaled = X_train_encoded.copy()
+# X_test_scaled = X_test_encoded.copy()
+
+# scaler = StandardScaler()
+# X_train_scaled[numerical_cols] = scaler.fit_transform(X_train_encoded[numerical_cols])
+# X_test_scaled[numerical_cols] = scaler.transform(X_test_encoded[numerical_cols])
+
+# print("Scaled Train Data:")
+# print(X_train_scaled.head())
+
+# print("Scaled Test Data:")
+# print(X_test_scaled.head())
+
+# # -------------------- Simple Imputer --------------------
+# from sklearn.impute import SimpleImputer
+
+# imputer = SimpleImputer(strategy='mean')
+# numerical_cols = X_train_raw.columns.drop(categorical_cols)
+
+# X_train_imputed = X_train_scaled.copy()
+# X_test_imputed = X_test_scaled.copy()
+
+# X_train_imputed[numerical_cols] = imputer.fit_transform(X_train_scaled[numerical_cols])
+# X_test_imputed[numerical_cols] = imputer.transform(X_test_scaled[numerical_cols])
+
+# print("Imputed Train Data:")
+# print(X_train_imputed.head())
+
+# # --------------------- SMOTE Analysis --------------------
+# from imblearn.over_sampling import SMOTE
+
+# smote = SMOTE(random_state=42)
+# X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_imputed, Y_train)
+
+# print("Original Train dataset shape:", Y_train.value_counts())
+# print("Resampled Train dataset shape:", Y_train_resampled.value_counts())
+
+# # -------------------- Model Training --------------------
+# from sklearn.linear_model import LogisticRegression
+# from sklearn.tree import DecisionTreeClassifier
+# from sklearn.ensemble import RandomForestClassifier
+# from sklearn.metrics import accuracy_score
+
+# models = {
+#     "Logistic Regression": LogisticRegression(random_state =42, max_iter=1000),
+#     "Decision Tree": DecisionTreeClassifier(),
+#     "Random Forest": RandomForestClassifier()
+# }
+
+# for name, model in models.items():
+#     print(f"\nTraining {name}...")
+#     model.fit(X_train_scaled, Y_train)
+#     print(name + " trained.")
+
+# for name, model in models.items():
+#     print(f"\nEvaluating {name}...")
+#     Y_pred = model.predict(X_test_scaled)
+#     accuracy = accuracy_score(Y_test, Y_pred)
+#     print(f"{name} Accuracy: {accuracy*100:.2f}%")
+
+# # -------------------- Confusion Matrix --------------------
+# from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+# for name, model in models.items():
+#     print(f"\nConfusion Matrix for {name}:")
+#     Y_pred = model.predict(X_test_scaled)
+#     cm = confusion_matrix(Y_test, Y_pred)
+#     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+#     disp.plot(cmap=plt.cm.Blues)
+#     plt.title(f'Confusion Matrix for {name}')
+#     plt.xlabel('Predicted')
+#     plt.ylabel('Actual')
+#     plt.show()
+# -------------------- Confusion Matrix Train dataset---------------------
+# for name,model in models.items():
+#     predictions = model.predict(X_train_scaled)
+#     cm = confusion_matrix(Y_train, predictions)
+#     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
+#     disp.plot(cmap=plt.cm.Blues)
+#     plt.title(f'Confusion Matrix for {name}')
+#     plt.tight_layout()
+#     plt.xlabel('Predicted Label')
+#     plt.ylabel('True Label')
+#     plt.show()
+# -------------------- Confusion Matrix Test dataset---------------------
+# for name,model in models.items():
+#     predictions = model.predict(X_test_scaled)
+#     cm = confusion_matrix(Y_test, predictions)
+#     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
+#     disp.plot(cmap=plt.cm.Blues)
+#     plt.title(f'Confusion Matrix for {name}')
+#     plt.tight_layout()
+#     plt.xlabel('Predicted Label')
+#     plt.ylabel('True Label')
+#     plt.show()
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-column_names = [
-    'duration', 'protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes',
-    'land', 'wrong_fragment', 'urgent', 'hot', 'num_failed_logins',
-    'logged_in', 'num_compromised', 'root_shell', 'su_attempted',
-    'num_root', 'num_file_creations', 'num_shells', 'num_access_files',
-    'num_outbound_cmds', 'is_host_login', 'is_guest_login', 'count',
-    'srv_count', 'serror_rate', 'srv_serror_rate', 'rerror_rate',
-    'srv_rerror_rate', 'same_srv_rate', 'diff_srv_rate', 'srv_diff_host_rate',
-    'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate',
-    'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
-    'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
-    'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
-    'dst_host_srv_rerror_rate', 'class', 'difficulty'
-]
+train_df=pd.read_csv("Dataset/CICIDS.csv")
+train_df.drop_duplicates(inplace=True)
+train_df=train_df.sample(n=10000, random_state=42)
+print("\nTrain Dataset Shape:", train_df.shape)
+# print(train_df.dtypes)
+# -------------------- Creating Binary classification in Train dataset --------------------
+train_df["binary_attack"]=train_df["Label"].apply(lambda x:0 if x == 'BENIGN'else 1)
+# print(train_df[['Label','binary_attack']])
 
-train_df=pd.read_csv("Dataset/KDD_Train.csv", header=None, names=column_names)
-train_df.drop("difficulty", axis=1, inplace=True)
-
-test_df=pd.read_csv("Dataset/KDD_Test.csv", header=None, names=column_names)
-test_df.drop("difficulty", axis=1, inplace=True)
-
-# Basic pandas functions in Train dataset
-print("\n----Number of rows and columns in Train_df----")
-print(train_df.shape)
-
-print("\n----First 5 rows of Train_df----")
-print(train_df.head())
-
-print("\n----Last 5 rows of Train_df----")
-print(train_df.tail())
-
-print("\n----Structure of the Train_df----")
-print(train_df.info())
-
-print("\n----Statistical summary of numeric columns----")
-print(train_df.describe())
-
-print("\n----Missing values----")
-print(train_df.isnull())
-
-print("\n----Sum of a column----")
-print(train_df['duration'].sum())
-
-# Basic pandas functions in Test dataset
-print("\n----First 5 rows of Test_df----")
-print(test_df.head())
-
-print("\n----Last 5 rows of Test_df----")
-print(test_df.tail())
-
-print("\n----Structure of the Test_df----")
-print(test_df.info())
-
-print("\n----Statistical summary of numeric colums----")
-print(test_df.describe())
-
-print("\n----Count----")
-print(train_df['class'].value_counts())
-
-# Creating Binary classification in Train dataset
-train_df["binary_attack"]=train_df["class"].apply(lambda x:0 if x == 'normal'else 1)
-print("\nclass and binary attack in Train_df")
-print(train_df[['class','binary_attack']])
-
-# Creating binary classification in Test dataset
-test_df["binary_attack"]=test_df["class"].apply(lambda x:0 if x == 'normal'else 1)
-print("\nclass and binary attack in Test_df")
-print(test_df[['class','binary_attack']])
-
-# Exploring the training dataset using basic plots
-# -------------------- Line Plot --------------------
-plt.figure(figsize=(8,5))
-sns.lineplot(x='duration', y='src_bytes', data=train_df, color='blue')
-plt.title('Duration vs Source Bytes')  
-plt.xlabel('Duration')
-plt.ylabel('Source Bytes')
-plt.show()
-
-# -------------------- Countplot--------------------
-plt.figure(figsize=(6,5))
-sns.countplot(x='binary_attack', hue='binary_attack', legend=False, data=train_df, palette=['cadetblue', 'crimson'])
-plt.title('Normal vs Attack Distribution')
-plt.xlabel('Binary Attack (0=Normal, 1=Attack)')
-plt.ylabel('Count')
-plt.show()
-
-plt.figure(figsize=(8,5))
-sns.countplot(x="protocol_type", data=train_df, palette=['lightgreen', 'lightcoral', 'lightskyblue'])
-plt.title('Protocol Type Distribution')
-plt.xlabel('Protocol Type')
-plt.ylabel('Count') 
-plt.show()
-
-# -------------------- Scatter Plot --------------------  
-plt.figure(figsize=(6,5))
-sns.scatterplot(x='src_bytes', y='dst_bytes',legend=True, hue='binary_attack', data=train_df, palette=['cadetblue', 'crimson'])
-plt.title('Source Bytes vs Destination Bytes')
-plt.xlabel('Source Bytes')
-plt.ylabel('Destination Bytes')
-plt.show()
-
-# -------------------- One-Hot Encoding --------------------
-X_train_raw=train_df.drop(['class', 'binary_attack'], axis=1)
-Y_train=train_df['binary_attack']
-
-X_test_raw=test_df.drop(['class', 'binary_attack'], axis=1)
-Y_test=test_df['binary_attack']
-
-categorical_cols=['protocol_type', 'service', 'flag']
-numerical_cols=X_train_raw.columns.drop(categorical_cols)
-
-X_train_encoded=pd.get_dummies(X_train_raw, columns=categorical_cols, drop_first=True)
-X_test_encoded=pd.get_dummies(X_test_raw, columns=categorical_cols, drop_first=True)
-
-train_cols=X_train_encoded.columns
-test_cols=X_test_encoded.columns
-
-for col in train_cols:
-    if col not in test_cols:
-        X_test_encoded[col]=0
-        
-X_test_encoded=X_test_encoded[train_cols]
-
-print("Train dataset after encoding:", X_train_encoded.shape)
-print("Test dataset after encoding:", X_test_encoded.shape)
+# --------------------- Splitting the dataset --------------------
+from sklearn.model_selection import train_test_split
+X=train_df.drop(['Label', 'binary_attack'], axis=1)
+Y=train_df['binary_attack']
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.5, random_state=42, stratify=Y)
+# print("Train dataset shape:", X_train.shape)
+# print("Test dataset shape:", X_test.shape)
 
 # -------------------- Standardscaler --------------------
 from sklearn.preprocessing import StandardScaler
-
-numerical_cols = X_train_raw.columns.drop(categorical_cols)
-
-X_train_scaled = X_train_encoded.copy()
-X_test_scaled = X_test_encoded.copy()
-
+numerical_cols=X_train.columns
+X_train_scaled = X_train.copy()
+X_test_scaled = X_test.copy()
 scaler = StandardScaler()
-X_train_scaled[numerical_cols] = scaler.fit_transform(X_train_encoded[numerical_cols])
-X_test_scaled[numerical_cols] = scaler.transform(X_test_encoded[numerical_cols])
-
-print("Scaled Train Data:")
-print(X_train_scaled.head())
-
-print("Scaled Test Data:")
-print(X_test_scaled.head())
-
-# -------------------- Simple Imputer --------------------
-from sklearn.impute import SimpleImputer
-
-imputer = SimpleImputer(strategy='mean')
-numerical_cols = X_train_raw.columns.drop(categorical_cols)
-
-X_train_imputed = X_train_scaled.copy()
-X_test_imputed = X_test_scaled.copy()
-
-X_train_imputed[numerical_cols] = imputer.fit_transform(X_train_scaled[numerical_cols])
-X_test_imputed[numerical_cols] = imputer.transform(X_test_scaled[numerical_cols])
-
-print("Imputed Train Data:")
-print(X_train_imputed.head())
+X_train_scaled[numerical_cols] = scaler.fit_transform(X_train[numerical_cols])
+X_test_scaled[numerical_cols] = scaler.transform(X_test[numerical_cols])
 
 # --------------------- SMOTE Analysis --------------------
 from imblearn.over_sampling import SMOTE
-
 smote = SMOTE(random_state=42)
-X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_imputed, Y_train)
+X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_scaled, Y_train)
+# print("\nResampled Train dataset shape:", X_train_resampled.shape)
+# print("\nOriginal Train dataset value counts:", Y_train.value_counts())
+# print("\nResampled Train dataset value counts:", Y_train_resampled.value_counts())
 
-print("Original Train dataset shape:", Y_train.value_counts())
-print("Resampled Train dataset shape:", Y_train_resampled.value_counts())
-
-# -------------------- Model Training --------------------
+# # -------------------- Model Training --------------------
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import precision_score, recall_score, f1_score
+from tabulate import tabulate
 
-models = {
-    "Logistic Regression": LogisticRegression(random_state =42, max_iter=1000),
-    "Decision Tree": DecisionTreeClassifier(),
-    "Random Forest": RandomForestClassifier()
+
+models = { 
+    "Logistic Regression": LogisticRegression(random_state=42, max_iter=1000,
+        C=10,
+        solver='liblinear'),
+    "Decision Tree": DecisionTreeClassifier(random_state=42, max_depth=None, 
+        min_samples_split=2, 
+        min_samples_leaf=2,criterion='gini'),
+    "Random Forest": RandomForestClassifier(random_state=42, n_estimators = 300,
+        max_depth =10,
+        min_samples_split=5, 
+        min_samples_leaf=2),
+    "Gradient Boosting": GradientBoostingClassifier(random_state=42, n_estimators=200, 
+        learning_rate=0.1, 
+        max_depth=5, ),
+    "XGBoost": XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42,  n_estimators=200, 
+        learning_rate=0.1, 
+        max_depth=5, ),
+    "LightGBM": LGBMClassifier(random_state=42,um_leaves=20, 
+       learning_rate=0.05, 
+       n_estimators=300, 
+       force_row_wise = True, 
+       verbose = -1,),
+    "K-Nearest Neighbors": KNeighborsClassifier(  n_neighbors=3, 
+        metric='minkowski', 
+        weights='distance')
 }
-
 for name, model in models.items():
     print(f"\nTraining {name}...")
-    model.fit(X_train_scaled, Y_train)
+    model.fit(X_train_resampled, Y_train_resampled)
     print(name + " trained.")
 
+results = []
 for name, model in models.items():
     print(f"\nEvaluating {name}...")
-    Y_pred = model.predict(X_test_scaled)
-    accuracy = accuracy_score(Y_test, Y_pred)
-    print(f"{name} Accuracy: {accuracy*100:.2f}%")
+    predictions = model.predict(X_test_scaled)
+    accuracy = accuracy_score(Y_test, predictions)
+    precision = precision_score(Y_test, predictions)
+    recall = recall_score(Y_test, predictions)
+    f1 = f1_score(Y_test, predictions)
+    results.append([name, accuracy, precision, recall, f1])
 
-# -------------------- Confusion Matrix --------------------
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+results_df = pd.DataFrame(results, columns=['Model', 'Accuracy', 'Precision', 'Recall', 'F1-Score'])
+results_df['Accuracy'] = results_df['Accuracy'].map(lambda x: f"{x:.2f}%")
 
-for name, model in models.items():
-    print(f"\nConfusion Matrix for {name}:")
-    Y_pred = model.predict(X_test_scaled)
-    cm = confusion_matrix(Y_test, Y_pred)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    disp.plot(cmap=plt.cm.Blues)
-    plt.title(f'Confusion Matrix for {name}')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.show()
+for col in ['Precision', 'Recall', 'F1-Score']:
+    results_df[col] = results_df[col].map(lambda x: f"{x:.4f}")
+
+print("\nModel Evaluation Results on Test Dataset:\n")
+
+table_str = tabulate(results_df, headers='keys', tablefmt='fancy_grid', showindex=False)
+print(table_str)
