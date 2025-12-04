@@ -20,7 +20,7 @@ column_names = [
 
 train_df=pd.read_csv("Dataset/KDD_Train.csv", header=None, names=column_names)
 train_df.drop("difficulty", axis=1, inplace=True)
-# print("\nTrain Dataset Shape:", train_df.shape)
+print("\nTrain Dataset Shape:", train_df.shape)
 
 test_df=pd.read_csv("Dataset/KDD_Test.csv", header=None, names=column_names)
 test_df.drop("difficulty", axis=1, inplace=True)
@@ -56,8 +56,8 @@ for col in train_cols:
         
 X_test_encoded=X_test_encoded[train_cols]
 
-# print("\nTrain dataset after encoding:", X_train_encoded.shape)
-# print("Test dataset after encoding:", X_test_encoded.shape)
+print("\nTrain dataset after encoding:", X_train_encoded.shape)
+print("Test dataset after encoding:", X_test_encoded.shape)
 
 # -------------------- Standard Scaler ---------------------
 from sklearn.preprocessing import StandardScaler
@@ -77,16 +77,14 @@ from imblearn.over_sampling import SMOTE
 smote = SMOTE(random_state=42)
 X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_scaled, Y_train)
 
-print("\nResampled Train dataset shape:", X_train_resampled.shape)
-print("\nOriginal Train dataset value counts:", Y_train.value_counts())
-print("\nResampled Train dataset value counts:", Y_train_resampled.value_counts())
+# print("\nResampled Train dataset shape:", X_train_resampled.shape)
+# print("\nOriginal Train dataset value counts:", Y_train.value_counts())
+# print("\nResampled Train dataset value counts:", Y_train_resampled.value_counts())
 
 # -------------------- Models Training ---------------------
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
@@ -97,63 +95,63 @@ from tabulate import tabulate
 models = {
     'Logistic Regression': LogisticRegression(
         random_state = 42, 
-        max_iter=1000
-        ),
-
-    'Support Vector Machine': SVC(
-        C=1.0, 
-        kernel='rbf', 
-        gamma='scale', 
-        random_state=42
+        max_iter=1000,
+        C=10,
+        solver='liblinear'
         ),
 
     'Decision Tree': DecisionTreeClassifier(
-        max_depth=10, 
-        min_samples_split=5, 
+        max_depth=None, 
+        min_samples_split=2, 
         min_samples_leaf=2, 
-        random_state=42
+        random_state=42,
+        criterion='gini'
         ),
 
     'Random Forest': RandomForestClassifier(
-        n_estimators=100,
-        max_depth=10, 
+        n_estimators = 300,
+        max_depth =10,
         min_samples_split=5, 
-        min_samples_leaf=2, 
-        random_state=42
+        min_samples_leaf=2
         ),
 
     'K-Nearest Neighbors': KNeighborsClassifier(
-        n_neighbors=5, 
-        metric='euclidean', 
-        weights='uniform'
+        n_neighbors=3, 
+        metric='minkowski', 
+        weights='distance'
         ),
 
     'Gradient Boosting': GradientBoostingClassifier(
-        n_estimators=100, 
+        n_estimators=200, 
         learning_rate=0.1, 
         max_depth=5, 
         random_state=42
         ),
 
     'XGBoost': XGBClassifier(
-        n_estimators=100, 
+        n_estimators=200, 
         learning_rate=0.1, 
         max_depth=5, 
         random_state=42
         ),
 
     'LightGBM': LGBMClassifier(
-        num_leaves=31, 
-       learning_rate=0.1, 
-       n_estimators=100, 
+       num_leaves=20, 
+       learning_rate=0.05, 
+       n_estimators=300, 
        force_row_wise = True, 
        verbose = -1,
        random_state=42
        ),
 
-    'AdaBoost': AdaBoostClassifier()   
-} 
+    'AdaBoost': AdaBoostClassifier(
+        n_estimators=150,
+        learning_rate=1.5,
+        random_state=42
+    )   
+}
 
+# -------------------- Model Training ---------------------
 for name,model in models.items():
     print(f"\nTraining {name}...")
     model.fit(X_train_resampled, Y_train_resampled)
@@ -184,18 +182,6 @@ with open('Train Dataset Results.txt', 'w', encoding='utf-8') as f:
     f.write(table_str)
 print("Evaluation metrics saved as 'Train Dataset Results.txt'")
 
-# -------------------- Confusion Matrix ---------------------
-for name,model in models.items():
-    predictions = model.predict(X_train_scaled)
-    cm = confusion_matrix(Y_train, predictions)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
-    disp.plot(cmap=plt.cm.Blues)
-    plt.title(f'Confusion Matrix for {name}')
-    plt.tight_layout()
-    plt.xlabel('Predicted Label')
-    plt.ylabel('True Label')
-    plt.show()
-
 # -------------------- Testing the Models using Test Dataset ---------------------   
 Results = []
 for name,model in models.items():
@@ -220,15 +206,3 @@ print(table)
 with open('Test Dataset Results.txt', 'w', encoding='utf-8') as f:
     f.write(table)
 print("Evaluation metrics saved as 'Test Dataset Results.txt'")
-
-# -------------------- Confusion Matrix ---------------------
-for name,model in models.items():
-    predictions = model.predict(X_test_scaled)
-    cm = confusion_matrix(Y_test, predictions)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
-    disp.plot(cmap=plt.cm.Blues)
-    plt.title(f'Confusion Matrix for {name}')
-    plt.tight_layout()
-    plt.xlabel('Predicted Label')
-    plt.ylabel('True Label')
-    plt.show()
