@@ -1,0 +1,72 @@
+
+
+
+
+1. Imports and Setup
+
+    Libraries: `pandas`, `scikit-learn`, `imblearn` (SMOTE), `seaborn`, `matplotlib`, `streamlit`.
+    Streamlit page configured with `title` and `wide layout`.
+
+2. Dataset Upload
+
+   *User can upload a **CSV dataset**.
+   *Dataset preview is shown in a table.
+
+3. Target Column Selection
+
+   * User selects the column containing the labels (target variable for ML).
+
+4. Data Preprocessing
+
+   * All categorical columns are **LabelEncoded** (converted to numbers).
+   * Features (`X`) are all columns except the target; target (`y`) is the selected column.
+
+5. Algorithm Selection
+
+    Users can choose from:
+
+     * Random Forest
+     * KNN
+     * SVM
+     * Logistic Regression
+     * Decision Tree
+     * Naive Bayes
+     * Gradient Boosting
+
+6. Test Size & SMOTE
+
+   User selects **test size** (10–50%) using a slider.
+   Optionally apply **SMOTE** to balance imbalanced classes in the training set.
+
+7. Model Training
+
+   * Dataset split into `X_train, X_test, y_train, y_test`.
+   * SMOTE applied if selected.
+   * Selected ML model is trained on `X_train` and `y_train`.
+
+8. Model Evaluation
+
+   Accuracy is calculated using:
+
+          accuracy_score(y_test, predictions)
+     
+
+      Formula:
+       [
+       \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Predictions}} \times 100
+       ]
+
+   Confusion Matrix:
+
+     * Displayed as a heatmap using `seaborn`.
+     * Shows true positives, false positives, false negatives, and true negatives.
+
+   Classification Report:
+
+     * Includes metrics: **precision**, **recall**, **f1-score**, **support** for each class.
+     * Displayed in a table using `st.dataframe`.
+
+9. User Feedback
+
+   * If no file is uploaded, a message asks the user to upload a CSV.
+
