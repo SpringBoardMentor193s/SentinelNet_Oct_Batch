@@ -10,7 +10,7 @@
 
 
 
----
+----
 
 🚨 Project Overview
 -
@@ -28,9 +28,7 @@ It detects:
 🛑 Brute force attempts
 
 🟢 Normal traffic
-
 -
-
 The system provides:
 
 Real-time classification
@@ -45,7 +43,7 @@ Deep-learning ready pipeline
 
 
 
----
+----
 
 ⚙️ Features
 -
@@ -114,10 +112,10 @@ Classification reports
 Exports metrics + plots in a professional PDF.
 
 
----
+----
 
-📁 Project Structure (Matches Your Repository)
-
+📁 Project Structure 
+-
 SENTINELNET/
 ├── .venv/                    
 ├── confusion.ipynb          
@@ -136,10 +134,10 @@ SENTINELNET/
 ├── streamlit_app.py          
 
 
----
+----
 
 🧠 Machine Learning Pipeline
-
+-
 1️⃣ Data Input
 -
 Accepts:
@@ -196,7 +194,7 @@ ROC (AUC)
 Live predictions & abnormal probability trends.
 
 
----
+----
 
 📊 Dashboards & Visualizations
 -
@@ -218,7 +216,7 @@ Live threat meter
 
 
 
----
+----
 
 📝 PDF Report Generation
 -
@@ -242,7 +240,7 @@ Your name & institution
 One-click export.
 
 
----
+----
 
 🚀 Running the App
 -
@@ -259,7 +257,7 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 
 
----
+----
 
 📂 Datasets Used
 -
@@ -277,7 +275,7 @@ Supported when converted into CSV.
 Any CSV with a label column works.
 
 
----
+----
 
 📈 Results (Example)
 -
@@ -291,7 +289,7 @@ XGBoost	⭐⭐ 95–99%	Top tier (optional)
 
 
 
----
+----
 
 🔐 Threat Levels
 -
@@ -304,7 +302,7 @@ Level	Range	Meaning
 
 
 
----
+----
 
 🧭 Future Enhancements
 -
@@ -324,21 +322,21 @@ Online learning
 
 
 
----
+----
 
 🤝 Contributing
 
 Pull requests welcome.
 
 
----
+----
 
 📜 License
 
 MIT License (see LICENSE)
 
 
----
+----
 
 ⭐ If SentinelNet helped you, please star the repository!
 
