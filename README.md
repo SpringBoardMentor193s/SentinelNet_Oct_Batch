@@ -28,9 +28,10 @@ It detects:
 🛑 Brute force attempts
 
 🟢 Normal traffic
--
-The system provides:
 
+
+The system provides:
+-
 Real-time classification
 
 SOC-grade dashboards
@@ -48,7 +49,7 @@ Deep-learning ready pipeline
 ⚙️ Features
 -
 ✔ Fully Automated ML Pipeline
-
+-
 Preprocessing
 
 Label encoding
@@ -61,7 +62,7 @@ Evaluation
 
 
 ✔ SOC-Themed Dashboard (Dark Cyber UI)
-
+-
 Animated neon title section
 
 Metrics counters
@@ -76,13 +77,13 @@ Trend & histogram charts
 
 
 ✔ Full Streamlit App
-
+-
 Main application file:
 
 /workspaces/SentinelNet_Oct_Batch/streamlit_app.py
 
 ✔ Multi-Model Support
-
+-
 Random Forest
 
 Gradient Boosting
@@ -95,7 +96,7 @@ XGBoost (optional)
 
 
 ✔ Advanced Evaluation
-
+-
 Confusion matrix
 
 ROC curve
@@ -108,7 +109,7 @@ Classification reports
 
 
 ✔ PDF Report Generator
-
+-
 Exports metrics + plots in a professional PDF.
 
 
@@ -264,6 +265,7 @@ streamlit run streamlit_app.py
 ✔ NSL-KDD
 
 kdd_training.csv
+
 kdd_testing.csv
 
 ✔ CICIDS-2017
@@ -282,9 +284,13 @@ Any CSV with a label column works.
 Model	Accuracy	Notes
 
 Random Forest	⭐ 92–96%	Best stability
+
 Gradient Boosting	⭐ 89–94%	Good consistency
+
 SVM (RBF)	⭐ 90–95%	Strong for boundaries
+
 Logistic Regression	80–85%	Baseline
+
 XGBoost	⭐⭐ 95–99%	Top tier (optional)
 
 
@@ -296,8 +302,11 @@ XGBoost	⭐⭐ 95–99%	Top tier (optional)
 Level	Range	Meaning
 
 🟢 Low	<10%	Safe
+
 🟡 Medium	10–30%	Suspicious
+
 🟠 High	30–60%	Possible attack
+
 🔴 Critical	>60%	Attack in progress
 
 
