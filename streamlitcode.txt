@@ -1,0 +1,88 @@
+import streamlit as st
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from imblearn.over_sampling import SMOTE
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+st.set_page_config(page_title="SentinelNet ML Tester", layout="wide")
+st.title("SentinelNet - ML Model Testing for Intrusion Detection")
+st.markdown("---")
+
+uploaded_file = st.file_uploader("Upload CSV Dataset", type=["csv"])
+
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+    st.subheader("Dataset Preview")
+    st.dataframe(df)
+
+    target_column = st.selectbox("Select Target Column (Label)", df.columns)
+
+    df_encoded = df.copy()
+    le = LabelEncoder()
+    for col in df_encoded.select_dtypes(include=['object']).columns:
+        df_encoded[col] = le.fit_transform(df_encoded[col])
+
+    X = df_encoded.drop(target_column, axis=1)
+    y = df_encoded[target_column]
+
+    algorithm = st.selectbox(
+        "Choose Algorithm",
+        [
+            "Random Forest",
+            "K-Nearest Neighbors (KNN)",
+            "Support Vector Machine (SVM)",
+            "Logistic Regression",
+            "Decision Tree",
+            "Naive Bayes",
+            "Gradient Boosting"
+        ]
+    )
+
+    test_size = st.slider("Test Size (%)", 10, 50, 20) / 100
+    apply_smote = st.checkbox("Apply SMOTE")
+
+    if st.button("Train Model"):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+
+        if apply_smote:
+            sm = SMOTE(random_state=42)
+            X_train, y_train = sm.fit_resample(X_train, y_train)
+            st.success("SMOTE applied successfully!")
+
+        models = {
+            "Random Forest": RandomForestClassifier(),
+            "K-Nearest Neighbors (KNN)": KNeighborsClassifier(),
+            "Support Vector Machine (SVM)": SVC(),
+            "Logistic Regression": LogisticRegression(max_iter=2000),
+            "Decision Tree": DecisionTreeClassifier(),
+            "Naive Bayes": GaussianNB(),
+            "Gradient Boosting": GradientBoostingClassifier()
+        }
+        model = models[algorithm]
+
+        model.fit(X_train, y_train)
+        predictions = model.predict(X_test)
+
+        st.subheader("Model Accuracy")
+        st.success(f"Accuracy: {accuracy_score(y_test, predictions) * 100:.2f}%")
+
+        st.subheader("Confusion Matrix")
+        cm = confusion_matrix(y_test, predictions)
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+        st.pyplot(fig)
+
+        st.subheader("Classification Report")
+        report = classification_report(y_test, predictions, output_dict=True)
+        st.dataframe(pd.DataFrame(report).transpose())
+else:
+    st.info("Please upload a CSV file to continue.")
