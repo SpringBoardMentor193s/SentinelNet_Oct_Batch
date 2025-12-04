@@ -1,17 +1,4 @@
-📘 SentinelNet — AI-Powered Network Intrusion Detection System (NIDS)
-███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗███╗   ██╗███████╗████████╗
-██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝████╗  ██║██╔════╝╚══██╔══╝
-███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██╔██╗ ██║█████╗     ██║   
-╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║╚██╗██║██╔══╝     ██║   
-███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗██║ ╚████║███████╗   ██║   
-╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
-
-          SENTINELNET • NEXT-GEN AI CYBER DEFENSE PLATFORM
-
-
-🚨 Project Overview
-
-SentinelNet is a fully functional Network Intrusion Detection System (NIDS) built using Machine Learning, Data Mining, and Streamlit SaaS-style UI.
+SentinelNet is a fully functional Network Intrusion Detection System (NIDS) built using Machine Learning, Data Mining, and a Streamlit SaaS-style UI.
 
 It detects:
 
@@ -21,9 +8,10 @@ It detects:
 
 🛑 U2R / R2L attacks
 
-🛑 Brute force attempts
+🛑 Brute-force attempts
 
 🟢 Normal traffic
+
 
 The system provides:
 
@@ -37,7 +25,12 @@ PDF reporting
 
 Deep-learning ready pipeline
 
+
+
+---
+
 ⚙️ Features
+
 ✔ Fully Automated ML Pipeline
 
 Preprocessing
@@ -49,6 +42,10 @@ Feature engineering
 Training & testing
 
 Evaluation
+
+
+
+---
 
 ✔ SOC-Themed Dashboard (Dark Cyber UI)
 
@@ -64,11 +61,17 @@ Probability graph
 
 Trend & histogram charts
 
+
+
+---
+
 ✔ Full Streamlit App
 
 Main application file:
-
 /workspaces/SentinelNet_Oct_Batch/streamlit_app.py
+
+
+---
 
 ✔ Multi-Model Support
 
@@ -82,6 +85,10 @@ SVM (RBF)
 
 XGBoost (optional)
 
+
+
+---
+
 ✔ Advanced Evaluation
 
 Confusion matrix
@@ -94,29 +101,55 @@ Precision / Recall
 
 Classification reports
 
+
+
+---
+
 ✔ PDF Report Generator
 
-Exports metrics + plots in a professional PDF.
+Exports:
 
-📁 Project Structure (Matches Your Repository)
+Model used
+
+Accuracy / Precision / Recall / F1
+
+Confusion matrix + ROC images
+
+Threat statistics
+
+Classification report
+
+Timestamp & user info
+
+One-click export
+
+
+
+---
+
+📁 Project Structure
+
 SENTINELNET/
 ├── .venv/                     # Virtual environment
-├── confusion.ipynb           # Confusion matrix experiments
-├── EDA.ipynb                 # Data exploration
-├── evaluation_Metrics.ipynb  # Testing models
-├── fselection.ipynb          # Feature selection
-├── kdd_testing.csv           # NSL-KDD test dataset
-├── kdd_training.csv          # NSL-KDD train dataset
+├── confusion.ipynb             # Confusion matrix experiments
+├── EDA.ipynb                   # Data exploration
+├── evaluation_Metrics.ipynb    # Testing models
+├── fselection.ipynb            # Feature selection
+├── kdd_testing.csv             # NSL-KDD test dataset
+├── kdd_training.csv            # NSL-KDD train dataset
 ├── LICENSE
-├── main.ipynb                # Main notebook for code testing
-├── practice.py               # Temp script
-├── preprocessing.ipynb       # Preprocessing experiments
-├── README.md                 # <— replaced with this new file
+├── main.ipynb                  # Main notebook for code testing
+├── practice.py                 # Temp script
+├── preprocessing.ipynb         # Preprocessing experiments
 ├── sampledata.ipynb
-├── sentinelnet_model.joblib  # Saved ML model
-├── streamlit_app.py          # 💠 FINAL STREAMLIT DASHBOARD APP
+├── sentinelnet_model.joblib    # Saved ML model
+├── streamlit_app.py            # 💠 FINAL STREAMLIT DASHBOARD APP
+
+
+---
 
 🧠 Machine Learning Pipeline
+
 1️⃣ Data Input
 
 Accepts:
@@ -126,6 +159,10 @@ NSL-KDD CSV
 CICIDS-2017 CSV
 
 Any custom CSV/TXT/XLSX
+
+
+
+---
 
 2️⃣ Preprocessing
 
@@ -139,15 +176,27 @@ Feature selection
 
 Train-test split
 
+
+
+---
+
 3️⃣ Model Training
 
 Uses modular trainer:
 
 RandomForestClassifier
+
 GradientBoostingClassifier
+
 SVC (RBF)
+
 LogisticRegression
+
 XGBoost (if installed)
+
+
+
+---
 
 4️⃣ Evaluation
 
@@ -165,13 +214,19 @@ Confusion matrix
 
 ROC (AUC)
 
+
+
+---
+
 5️⃣ Prediction
 
-Live predictions & abnormal probability trends.
+Live predictions & abnormal probability trends
+
+
+
+---
 
 📊 Dashboards & Visualizations
-
-SentinelNet provides:
 
 Label distribution bar graph
 
@@ -187,6 +242,10 @@ Probability time-series
 
 Live threat meter
 
+
+
+---
+
 📝 PDF Report Generation
 
 Exports:
@@ -195,54 +254,75 @@ Model used
 
 Accuracy / Precision / Recall / F1
 
-CM + ROC images
+Confusion matrix + ROC
 
 Threat statistics
 
 Classification report
 
-Timestamp
+Timestamp, user info
 
-Your name & institution
+One-click export
 
-One-click export.
+
+
+---
 
 🚀 Running the App
-1. Activate environment
+
+# Activate environment
 source .venv/bin/activate
 
-2. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-3. Launch Streamlit
+# Launch Streamlit
 streamlit run streamlit_app.py
 
+
+---
+
 📂 Datasets Used
+
 ✔ NSL-KDD
-kdd_training.csv
-kdd_testing.csv
+kdd_training.csv / kdd_testing.csv
 
 ✔ CICIDS-2017
-
-Supported when converted into CSV.
+Supported when converted into CSV
 
 ✔ Custom Datasets
+Any CSV with a label column works
 
-Any CSV with a label column works.
 
-📈 Results (Example)
+---
+
+📈 Model Results (Example)
+
 Model	Accuracy	Notes
+
 Random Forest	⭐ 92–96%	Best stability
 Gradient Boosting	⭐ 89–94%	Good consistency
 SVM (RBF)	⭐ 90–95%	Strong for boundaries
 Logistic Regression	80–85%	Baseline
-XGBoost	⭐⭐ 95–99%	Top tier (optional)
+XGBoost (optional)	⭐⭐ 95–99%	Top tier
+
+
+
+---
+
 🔐 Threat Levels
+
 Level	Range	Meaning
+
 🟢 Low	<10%	Safe
 🟡 Medium	10–30%	Suspicious
 🟠 High	30–60%	Possible attack
 🔴 Critical	>60%	Attack in progress
+
+
+
+---
+
 🧭 Future Enhancements
 
 LSTM-based intrusion model
@@ -259,12 +339,10 @@ Threat-intel feed
 
 Online learning
 
+
+
+---
+
 🤝 Contributing
 
-Pull requests welcome.
-
-📜 License
-
-MIT License (see LICENSE)
-
-⭐ If SentinelNet helped you, please star the repository!
+Pull requests welcome! ⭐
