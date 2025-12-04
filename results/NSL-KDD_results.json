@@ -85,10 +85,10 @@
             },
             {
                 "Model": "Gradient Boosting (TE)",
-                "Accuracy": "80.59%",
-                "Sensitivity": "67.84%",
+                "Accuracy": "80.72%",
+                "Sensitivity": "68.07%",
                 "Specificity": "97.44%",
-                "F1 Score": "79.92%",
+                "F1 Score": "80.08%",
                 "AUC": "0.9603"
             },
             {
@@ -101,11 +101,11 @@
             },
             {
                 "Model": "LightGBM (TE)",
-                "Accuracy": "80.03%",
-                "Sensitivity": "67.03%",
-                "Specificity": "97.20%",
-                "F1 Score": "79.26%",
-                "AUC": "0.9614"
+                "Accuracy": "80.21%",
+                "Sensitivity": "67.36%",
+                "Specificity": "97.19%",
+                "F1 Score": "79.49%",
+                "AUC": "0.9617"
             },
             {
                 "Model": "CatBoost (TE)",
@@ -152,132 +152,132 @@
     "multiclass": {
         "train_metrics": [
             {
-                "Model": "XGBoost (TE)",
-                "Accuracy": "99.99%",
-                "Precision (Macro)": "100.00%",
-                "Recall (Macro)": "99.61%",
-                "F1 Score (Macro)": "99.80%"
-            },
-            {
-                "Model": "LightGBM (TE)",
-                "Accuracy": "99.99%",
-                "Precision (Macro)": "99.62%",
-                "Recall (Macro)": "100.00%",
-                "F1 Score (Macro)": "99.81%"
-            },
-            {
-                "Model": "Random Forest (OHE)",
-                "Accuracy": "99.95%",
-                "Precision (Macro)": "96.80%",
-                "Recall (Macro)": "99.98%",
-                "F1 Score (Macro)": "98.30%"
-            },
-            {
-                "Model": "CatBoost (TE)",
-                "Accuracy": "99.93%",
-                "Precision (Macro)": "98.68%",
-                "Recall (Macro)": "96.80%",
-                "F1 Score (Macro)": "97.71%"
-            },
-            {
-                "Model": "Gradient Boosting (TE)",
-                "Accuracy": "99.87%",
-                "Precision (Macro)": "85.54%",
-                "Recall (Macro)": "85.98%",
-                "F1 Score (Macro)": "85.73%"
-            },
-            {
                 "Model": "Decision Tree (OHE)",
-                "Accuracy": "99.65%",
-                "Precision (Macro)": "91.64%",
-                "Recall (Macro)": "99.87%",
-                "F1 Score (Macro)": "95.20%"
+                "Accuracy": "99.99%",
+                "Precision (Macro)": "98.46%",
+                "Recall (Macro)": "99.97%",
+                "F1 Score (Macro)": "99.19%"
             },
             {
                 "Model": "Linear SVM (OHE)",
-                "Accuracy": "97.95%",
-                "Precision (Macro)": "72.65%",
-                "Recall (Macro)": "90.11%",
-                "F1 Score (Macro)": "77.53%"
+                "Accuracy": "99.96%",
+                "Precision (Macro)": "96.16%",
+                "Recall (Macro)": "95.64%",
+                "F1 Score (Macro)": "95.89%"
             },
             {
                 "Model": "Logistic Regression (OHE)",
-                "Accuracy": "96.46%",
-                "Precision (Macro)": "65.46%",
-                "Recall (Macro)": "97.27%",
-                "F1 Score (Macro)": "69.85%"
+                "Accuracy": "99.93%",
+                "Precision (Macro)": "89.47%",
+                "Recall (Macro)": "99.05%",
+                "F1 Score (Macro)": "92.62%"
             },
             {
                 "Model": "Naive Bayes (OHE)",
-                "Accuracy": "69.50%",
-                "Precision (Macro)": "55.58%",
-                "Recall (Macro)": "65.16%",
-                "F1 Score (Macro)": "41.01%"
+                "Accuracy": "96.74%",
+                "Precision (Macro)": "65.38%",
+                "Recall (Macro)": "85.29%",
+                "F1 Score (Macro)": "65.91%"
+            },
+            {
+                "Model": "Random Forest (OHE)",
+                "Accuracy": "100.00%",
+                "Precision (Macro)": "99.60%",
+                "Recall (Macro)": "99.98%",
+                "F1 Score (Macro)": "99.79%"
+            },
+            {
+                "Model": "Gradient Boosting (TE)",
+                "Accuracy": "100.00%",
+                "Precision (Macro)": "99.62%",
+                "Recall (Macro)": "99.98%",
+                "F1 Score (Macro)": "99.80%"
+            },
+            {
+                "Model": "XGBoost (TE)",
+                "Accuracy": "100.00%",
+                "Precision (Macro)": "100.00%",
+                "Recall (Macro)": "100.00%",
+                "F1 Score (Macro)": "100.00%"
+            },
+            {
+                "Model": "LightGBM (TE)",
+                "Accuracy": "100.00%",
+                "Precision (Macro)": "100.00%",
+                "Recall (Macro)": "100.00%",
+                "F1 Score (Macro)": "100.00%"
+            },
+            {
+                "Model": "CatBoost (TE)",
+                "Accuracy": "100.00%",
+                "Precision (Macro)": "99.99%",
+                "Recall (Macro)": "98.83%",
+                "F1 Score (Macro)": "99.39%"
             }
         ],
         "test_metrics": [
             {
-                "Model": "Logistic Regression (OHE)",
-                "Accuracy": "79.20%",
-                "Precision (Macro)": "68.58%",
-                "Recall (Macro)": "60.43%",
-                "F1 Score (Macro)": "60.30%"
-            },
-            {
-                "Model": "Gradient Boosting (TE)",
-                "Accuracy": "77.39%",
-                "Precision (Macro)": "82.30%",
-                "Recall (Macro)": "52.70%",
-                "F1 Score (Macro)": "52.77%"
-            },
-            {
-                "Model": "XGBoost (TE)",
-                "Accuracy": "77.38%",
-                "Precision (Macro)": "80.84%",
-                "Recall (Macro)": "51.08%",
-                "F1 Score (Macro)": "51.37%"
+                "Model": "CatBoost (TE)",
+                "Accuracy": "89.88%",
+                "Precision (Macro)": "81.03%",
+                "Recall (Macro)": "70.63%",
+                "F1 Score (Macro)": "71.48%"
             },
             {
                 "Model": "LightGBM (TE)",
-                "Accuracy": "76.96%",
-                "Precision (Macro)": "83.70%",
-                "Recall (Macro)": "53.55%",
-                "F1 Score (Macro)": "54.26%"
+                "Accuracy": "89.05%",
+                "Precision (Macro)": "76.84%",
+                "Recall (Macro)": "72.69%",
+                "F1 Score (Macro)": "72.30%"
             },
             {
-                "Model": "CatBoost (TE)",
-                "Accuracy": "75.86%",
-                "Precision (Macro)": "84.52%",
-                "Recall (Macro)": "50.88%",
-                "F1 Score (Macro)": "52.12%"
+                "Model": "XGBoost (TE)",
+                "Accuracy": "87.46%",
+                "Precision (Macro)": "76.35%",
+                "Recall (Macro)": "66.59%",
+                "F1 Score (Macro)": "66.85%"
             },
             {
                 "Model": "Linear SVM (OHE)",
-                "Accuracy": "74.89%",
-                "Precision (Macro)": "61.98%",
-                "Recall (Macro)": "52.85%",
-                "F1 Score (Macro)": "52.55%"
+                "Accuracy": "86.84%",
+                "Precision (Macro)": "66.10%",
+                "Recall (Macro)": "66.50%",
+                "F1 Score (Macro)": "64.92%"
             },
             {
                 "Model": "Random Forest (OHE)",
-                "Accuracy": "74.64%",
-                "Precision (Macro)": "79.11%",
-                "Recall (Macro)": "48.92%",
-                "F1 Score (Macro)": "50.30%"
+                "Accuracy": "86.52%",
+                "Precision (Macro)": "79.89%",
+                "Recall (Macro)": "67.45%",
+                "F1 Score (Macro)": "68.56%"
+            },
+            {
+                "Model": "Logistic Regression (OHE)",
+                "Accuracy": "86.39%",
+                "Precision (Macro)": "66.33%",
+                "Recall (Macro)": "64.74%",
+                "F1 Score (Macro)": "63.64%"
+            },
+            {
+                "Model": "Gradient Boosting (TE)",
+                "Accuracy": "86.27%",
+                "Precision (Macro)": "78.58%",
+                "Recall (Macro)": "67.35%",
+                "F1 Score (Macro)": "67.22%"
             },
             {
                 "Model": "Decision Tree (OHE)",
-                "Accuracy": "73.48%",
-                "Precision (Macro)": "66.54%",
-                "Recall (Macro)": "50.33%",
-                "F1 Score (Macro)": "49.04%"
+                "Accuracy": "83.98%",
+                "Precision (Macro)": "73.28%",
+                "Recall (Macro)": "69.12%",
+                "F1 Score (Macro)": "68.32%"
             },
             {
                 "Model": "Naive Bayes (OHE)",
-                "Accuracy": "47.37%",
-                "Precision (Macro)": "51.00%",
-                "Recall (Macro)": "36.80%",
-                "F1 Score (Macro)": "33.52%"
+                "Accuracy": "79.25%",
+                "Precision (Macro)": "58.69%",
+                "Recall (Macro)": "59.88%",
+                "F1 Score (Macro)": "57.63%"
             }
         ]
     }
