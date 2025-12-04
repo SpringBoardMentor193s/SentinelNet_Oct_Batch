@@ -1,9 +1,3 @@
-███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗███╗   ██╗███████╗████████╗
-██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝████╗  ██║██╔════╝╚══██╔══╝
-███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██╔██╗ ██║█████╗     ██║   
-╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║╚██╗██║██╔══╝     ██║   
-███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗██║ ╚████║███████╗   ██║   
-╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝╚══════╝   ╚═╝   
 
           SENTINELNET • NEXT-GEN AI CYBER DEFENSE PLATFORM
 
@@ -19,7 +13,7 @@
 ---
 
 🚨 Project Overview
-_
+-
 
 SentinelNet is a fully functional Network Intrusion Detection System (NIDS) built using Machine Learning, Data Mining, and Streamlit SaaS-style UI.
 
@@ -35,6 +29,7 @@ It detects:
 
 🟢 Normal traffic
 
+-
 
 The system provides:
 
@@ -53,7 +48,7 @@ Deep-learning ready pipeline
 ---
 
 ⚙️ Features
-
+-
 ✔ Fully Automated ML Pipeline
 
 Preprocessing
@@ -124,21 +119,21 @@ Exports metrics + plots in a professional PDF.
 📁 Project Structure (Matches Your Repository)
 
 SENTINELNET/
-├── .venv/                     # Virtual environment
-├── confusion.ipynb           # Confusion matrix experiments
-├── EDA.ipynb                 # Data exploration
-├── evaluation_Metrics.ipynb  # Testing models
-├── fselection.ipynb          # Feature selection
-├── kdd_testing.csv           # NSL-KDD test dataset
-├── kdd_training.csv          # NSL-KDD train dataset
+├── .venv/                    
+├── confusion.ipynb          
+├── EDA.ipynb                
+├── evaluation_Metrics.ipynb  
+├── fselection.ipynb          
+├── kdd_testing.csv          
+├── kdd_training.csv          
 ├── LICENSE
-├── main.ipynb                # Main notebook for code testing
-├── practice.py               # Temp script
-├── preprocessing.ipynb       # Preprocessing experiments
-├── README.md                 # <— replaced with this new file
+├── main.ipynb                
+├── practice.py              
+├── preprocessing.ipynb      
+├── README.md                 
 ├── sampledata.ipynb
-├── sentinelnet_model.joblib  # Saved ML model
-├── streamlit_app.py          # 💠 FINAL STREAMLIT DASHBOARD APP
+├── sentinelnet_model.joblib  
+├── streamlit_app.py          
 
 
 ---
@@ -146,7 +141,7 @@ SENTINELNET/
 🧠 Machine Learning Pipeline
 
 1️⃣ Data Input
-
+-
 Accepts:
 
 NSL-KDD CSV
@@ -157,7 +152,7 @@ Any custom CSV/TXT/XLSX
 
 
 2️⃣ Preprocessing
-
+-
 Label mapping (Normal → 0, Attack → 1)
 
 Encoding categorical fields
@@ -170,7 +165,7 @@ Train-test split
 
 
 3️⃣ Model Training
-
+-
 Uses modular trainer:
 
 RandomForestClassifier
@@ -180,7 +175,7 @@ LogisticRegression
 XGBoost (if installed)
 
 4️⃣ Evaluation
-
+-
 Includes:
 
 Accuracy
@@ -197,14 +192,14 @@ ROC (AUC)
 
 
 5️⃣ Prediction
-
+-
 Live predictions & abnormal probability trends.
 
 
 ---
 
 📊 Dashboards & Visualizations
-
+-
 SentinelNet provides:
 
 Label distribution bar graph
@@ -226,7 +221,7 @@ Live threat meter
 ---
 
 📝 PDF Report Generation
-
+-
 Exports:
 
 Model used
@@ -250,7 +245,7 @@ One-click export.
 ---
 
 🚀 Running the App
-
+-
 1. Activate environment
 
 source .venv/bin/activate
@@ -267,7 +262,7 @@ streamlit run streamlit_app.py
 ---
 
 📂 Datasets Used
-
+-
 ✔ NSL-KDD
 
 kdd_training.csv
@@ -285,7 +280,7 @@ Any CSV with a label column works.
 ---
 
 📈 Results (Example)
-
+-
 Model	Accuracy	Notes
 
 Random Forest	⭐ 92–96%	Best stability
@@ -299,7 +294,7 @@ XGBoost	⭐⭐ 95–99%	Top tier (optional)
 ---
 
 🔐 Threat Levels
-
+-
 Level	Range	Meaning
 
 🟢 Low	<10%	Safe
@@ -312,7 +307,7 @@ Level	Range	Meaning
 ---
 
 🧭 Future Enhancements
-
+-
 LSTM-based intrusion model
 
 Autoencoder anomaly detection
