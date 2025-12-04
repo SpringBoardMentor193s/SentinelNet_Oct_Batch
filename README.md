@@ -253,7 +253,9 @@ cd SentinelNet
 2️⃣ Create Environment
 -
 python -m venv .venv
+
 source .venv/bin/activate   # Linux/macOS
+
 .venv\Scripts\activate      # Windows
 
 3️⃣ Install Requirements
@@ -373,4 +375,14 @@ MIT License (see LICENSE)
 ----
 
 ⭐ If SentinelNet helped you, please star the repository!
+
+
+----
+
+Vaageswari College of Engineering
+
+📧 laxmisahityareddy18@gmail.com
+
+
+----
 
