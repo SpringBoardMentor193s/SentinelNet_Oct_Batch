@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
 from sklearn.metrics import confusion_matrix, roc_curve, auc
+import numpy as np
+
 
 # Prediction Distribution Bar Chart
 def plot_prediction_distribution(preds):
