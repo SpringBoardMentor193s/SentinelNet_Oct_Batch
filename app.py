@@ -67,89 +67,81 @@ mode = st.selectbox("Choose Mode", ["Live Predicting (Real-Time)", "CSV Predicti
 # ==================================================================
 # LIVE MODE
 # ==================================================================
+# In app.py — Replace the entire LIVE MODE block with this:
+
 if mode == "Live Predicting (Real-Time)":
-    st.header("Live Network Monitoring")
-    st.info("Capturing real packets using **Scapy** → Random Forest predictions every few seconds.")
+    st.header("SentinelNet – Live Intrusion Detection")
+    st.info("Real-time packet capture → Random Forest prediction")
 
     col1, col2 = st.columns([1, 3])
-
     with col1:
         st.subheader("Controls")
-        interface_input = st.text_input("Interface", value="auto", help="Use 'auto' or full name")
         start_btn = st.button("Start Live Detection", type="primary")
-        stop_btn = st.button("Stop Detection")
-        refresh_btn = st.button("Force Refresh Now")
-        interval = st.slider("Auto-refresh (seconds)", 10, 120, 20)
-
-        if st.button("List Interfaces (tshark)"):
-            import subprocess
-            try:
-                out = subprocess.check_output("tshark -D", shell=True, text=True)
-                st.code(out)
-            except:
-                st.error("tshark not found")
+        stop_btn = st.button("Stop Detection", type="secondary")
+        refresh_btn = st.button("Refresh Results Now")
+        interval = st.slider("Auto-refresh (sec)", 10, 60, 20)
 
     with col2:
         status = st.empty()
-        result_box = st.empty()
-        table = st.empty()
+        result = st.empty()
         chart = st.empty()
 
-    # Session state
-    if "sniffer" not in st.session_state:
-        st.session_state.sniffer = None
-    if "last_run" not in st.session_state:
-        st.session_state.last_run = 0
+    # Initialize
+    if "live_buffer" not in st.session_state:
+        st.session_state.live_buffer = []
+    if "sniffer_running" not in st.session_state:
+        st.session_state.sniffer_running = False
 
-    # Load model & scaler
-    rf_model = safe_load(AVAILABLE_MODELS_FILES["Random Forest"])
-    scaler = safe_load(SCALER_PATH) if os.path.exists(SCALER_PATH) else None
+    lock = threading.Lock()
 
-    # START
+    def live_callback(features):
+        with lock:
+            st.session_state.live_buffer.append(features)
+
+    # Start
     if start_btn:
         stop_sniffing()
-        start_sniffing(live_packet_callback, interface="auto")
-        st.success("Sniffer started!")
-        st.rerun()
+        st.session_state.live_buffer = []
+        start_sniffing(live_callback)
+        st.session_state.sniffer_running = True
+        st.success("LIVE DETECTION STARTED")
 
-    # STOP
-    if stop_btn and st.session_state.sniffer:
+    # Stop
+    if stop_btn:
         stop_sniffing()
-        st.session_state.sniffer = None
-        st.warning("Sniffer stopped")
-        st.rerun()
+        st.session_state.sniffer_running = False
+        st.warning("Detection Stopped")
 
-    # PROCESS PACKETS
-    if rf_model and (refresh_btn or time.time() - st.session_state.last_run >= interval):
-        st.session_state.last_run = time.time()
+    # Load model
+    rf_model = safe_load("models/random_forest.pkl")
+    scaler = safe_load("models/scaler.pkl") if os.path.exists("models/scaler.pkl") else None
 
-        with buffer_lock:
-            packets = live_buffer.copy()
-            live_buffer.clear()
+    # Process buffer
+    if st.session_state.sniffer_running and rf_model and (refresh_btn or (time.time() - st.session_state.get("last_refresh", 0) > interval)):
+        st.session_state.last_refresh = time.time()
+        with lock:
+            packets = st.session_state.live_buffer.copy()
+            st.session_state.live_buffer.clear()
 
-        if not packets:
-            status.info("Waiting for packets... Open a website or ping google.com")
-        else:
-            df = pd.DataFrame([p["features"] for p in packets])
-            X = preprocess_live_data(df)
+        if packets:
+            df = pd.DataFrame(packets)
+            X = df[FEATURE_COLUMNS]
             X_scaled = scaler.transform(X) if scaler else X.values
             preds = predict_with_model(rf_model, X_scaled)
-
             attacks = int(preds.sum())
             normal = len(preds) - attacks
 
             status.success(f"Processed {len(preds)} packets")
-            result_box.markdown(f"""
-                ### Live Result
-                - **Attacks Detected**: {attacks}  
-                - **Normal Traffic**: {normal}  
-                - **Total Packets**: {len(preds)}
+            result.markdown(f"""
+            ### LIVE RESULT
+            **Attacks Detected:** `{attacks}`  
+            **Normal Traffic:** `{normal}`  
+            **Total Packets:** `{len(preds)}`
             """)
-
-            recent = df.tail(10).copy()
-            recent["Prediction"] = ["**ATTACK**" if x == 1 else "Normal" for x in preds[-10:]]
-            table.dataframe(recent, use_container_width=True)
-            chart.pyplot(plot_prediction_distribution(preds))
+            fig = plot_prediction_distribution(preds)
+            chart.pyplot(fig)
+        else:
+            status.info("Capturing packets... Open YouTube or browse")
 
 # ==================================================================
 # OFFLINE CSV MODE

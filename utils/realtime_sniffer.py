@@ -1,72 +1,72 @@
 # utils/realtime_sniffer.py
+# FINAL CLEAN VERSION — NO SPAM, STOP WORKS, PERFECT FOR STREAMLIT
 
-from scapy.all import AsyncSniffer, get_if_list
+from scapy.all import AsyncSniffer
 import threading
 
-print("[DEBUG] realtime_sniffer.py LOADED SUCCESSFULLY!")
-
-# Global sniffer
 _sniffer = None
+_stop_event = threading.Event()
 
 def start_sniffing(callback_function, interface="auto"):
     global _sniffer
-    print("\n" + "="*60)
-    print("start_sniffing() CALLED! — THIS MEANS IT WORKS!")
-    print(f"Callback function: {callback_function}")
-    print("="*60 + "\n")
-
-    # List all interfaces
-    ifaces = get_if_list()
-    print(f"All Scapy interfaces: {ifaces}")
-
-    # Find Wi-Fi
-    wifi_iface = None
-    for iface in ifaces:
-        if "wi-fi" in iface.lower() or "wlan" in iface.lower() or "wifi" in iface.lower():
-            wifi_iface = iface
-            break
-    if not wifi_iface and ifaces:
-        wifi_iface = ifaces[0]  # fallback
-
-    print(f"Using interface: {wifi_iface}")
+    _stop_event.clear()
+    
+    print("Live Sniffer STARTED → Capturing real traffic...")
 
     def packet_handler(pkt):
-        if hasattr(pkt, '__len__'):
-            print(f"[PACKET] Captured! Size: {len(pkt)} bytes")
+        if _stop_event.is_set():
+            return
+        if pkt.haslayer('IP'):
             features = {
-                "duration": 0.0, "src_bytes": len(pkt), "dst_bytes": 0,
-                "protocol_type_encoded": 0, "service_encoded": 80, "flag_encoded": 0,
-                "count": 1, "srv_count": 1, "same_srv_rate": 1.0,
-                # ... fill rest with 0s
-                **{col: 0 for col in [
-                    'wrong_fragment', 'hot', 'logged_in', 'num_compromised', 'root_shell',
-                    'num_root', 'num_file_creations', 'num_shells', 'num_access_files',
-                    'is_guest_login', 'serror_rate', 'srv_serror_rate', 'rerror_rate',
-                    'srv_rerror_rate', 'diff_srv_rate', 'srv_diff_host_rate',
-                    'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate',
-                    'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
-                    'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
-                    'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
-                    'dst_host_srv_rerror_rate'
-                ]}
+                "duration": 0.0,
+                "src_bytes": len(pkt),
+                "dst_bytes": 0,
+                "wrong_fragment": 0,
+                "hot": 0,
+                "logged_in": 0,
+                "num_compromised": 0,
+                "root_shell": 0,
+                "num_root": 0,
+                "num_file_creations": 0,
+                "num_shells": 0,
+                "num_access_files": 0,
+                "is_guest_login": 0,
+                "count": 1,
+                "srv_count": 1,
+                "serror_rate": 0.0,
+                "srv_serror_rate": 0.0,
+                "rerror_rate": 0.0,
+                "srv_rerror_rate": 0.0,
+                "same_srv_rate": 1.0,
+                "diff_srv_rate": 0.0,
+                "srv_diff_host_rate": 0.0,
+                "dst_host_count": 1,
+                "dst_host_srv_count": 1,
+                "dst_host_same_srv_rate": 1.0,
+                "dst_host_diff_srv_rate": 0.0,
+                "dst_host_same_src_port_rate": 0.5,
+                "dst_host_srv_diff_host_rate": 0.0,
+                "dst_host_serror_rate": 0.0,
+                "dst_host_srv_serror_rate": 0.0,
+                "dst_host_rerror_rate": 0.0,
+                "dst_host_srv_rerror_rate": 0.0,
+                "protocol_type_encoded": 0,
+                "service_encoded": 80,
+                "flag_encoded": 0
             }
             callback_function(features)
 
-    try:
-        _sniffer = AsyncSniffer(
-            iface=wifi_iface,
-            prn=packet_handler,
-            store=False,
-            filter="tcp or udp or icmp"
-        )
-        _sniffer.start()
-        print(f"[SUCCESS] SNIFFER STARTED ON {wifi_iface}")
-    except Exception as e:
-        print(f"[FAILED] {e}")
+    _sniffer = AsyncSniffer(
+        prn=packet_handler,
+        store=False,
+        filter="ip"
+    )
+    _sniffer.start()
 
 def stop_sniffing():
     global _sniffer
+    _stop_event.set()
     if _sniffer:
         _sniffer.stop()
-        print("[SNIFFER] STOPPED")
+        print("Live Sniffer STOPPED")
     _sniffer = None
