@@ -287,7 +287,7 @@ streamlit run streamlit_app.py
 ----
 UI 
 -
-/workspaces/SentinelNet_Oct_Batch/streamlit_app.py
+streamlit_app.py
 
 ----
 
