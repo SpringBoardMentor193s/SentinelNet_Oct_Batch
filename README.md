@@ -284,6 +284,10 @@ pip install -r requirements.txt
 
 streamlit run streamlit_app.py
 
+----
+UI 
+-
+https://github.com/SpringBoardMentor193s/SentinelNet_Oct_Batch/blob/laxmisahitya/streamlit_app.py
 
 ----
 
