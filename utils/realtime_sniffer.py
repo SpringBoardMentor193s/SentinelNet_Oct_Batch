@@ -1,5 +1,4 @@
 # utils/realtime_sniffer.py
-# FINAL WORKING + MAX DEBUG VERSION — DEC 2025
 
 from scapy.all import AsyncSniffer, get_if_list
 import threading
