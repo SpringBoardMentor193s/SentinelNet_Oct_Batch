@@ -287,7 +287,7 @@ streamlit run streamlit_app.py
 ----
 UI 
 -
-https://github.com/SpringBoardMentor193s/SentinelNet_Oct_Batch/blob/laxmisahitya/streamlit_app.py
+/workspaces/SentinelNet_Oct_Batch/streamlit_app.py
 
 ----
 
