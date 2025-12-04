@@ -243,6 +243,31 @@ One-click export.
 
 ----
 
+🚀 Installation
+-
+1️⃣ Clone Repository
+-
+git clone https://github.com/yourusername/SentinelNet.git
+cd SentinelNet
+
+2️⃣ Create Environment
+-
+python -m venv .venv
+source .venv/bin/activate   # Linux/macOS
+.venv\Scripts\activate      # Windows
+
+3️⃣ Install Requirements
+-
+pip install -r requirements.txt
+
+4️⃣ Run App
+-
+streamlit run streamlit_app.py
+
+
+
+----
+
 🚀 Running the App
 -
 1. Activate environment
