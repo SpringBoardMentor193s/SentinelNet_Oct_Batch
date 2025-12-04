@@ -1,0 +1,15 @@
+# virtual env
+.venv/
+
+
+# model files
+*.pkl
+
+# notebooks checkpoints
+.ipynb_checkpoints/
+
+# python cache
+__pycache__/
+*.pyc
+
+
