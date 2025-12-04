@@ -51,7 +51,7 @@ AVAILABLE_MODELS_FILES = {
     "Random Forest": "models/random_forest.pkl",
     "XGBoost": "models/xgboost.pkl",
     "SVM": "models/svm.pkl",
-    "KNN": "models/knn.pkl"
+    "Decision Tree": "models/decision_tree.pkl"
 }
 SCALER_PATH = "models/scaler.pkl"
 
