@@ -285,11 +285,6 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 
 ----
-UI 
--
-streamlit_app.py
-
-----
 
 📂 Datasets Used
 -
