@@ -1,3 +1,2 @@
-kdd_encoders.pkl
-kdd_train_processed.csv
-kdd_test_processed.csv
+*.csv
+*.pkl
