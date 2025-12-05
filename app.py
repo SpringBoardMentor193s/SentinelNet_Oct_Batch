@@ -278,72 +278,173 @@ def preprocess_binary(df_raw: pd.DataFrame):
 # -----------------------------------------------------------
 # PREPROCESS: MULTICLASS (NO get_dummies)
 # -----------------------------------------------------------
-def preprocess_multiclass(df_raw: pd.DataFrame):
-    """
-    Preprocessing for NSLKDDTest.csv (5-class numeric labels 0..4):
-    - 42 or 43 columns
-    - label column is numeric 0..4
-    - output labels as strings: dos, normal, probe, r2l, u2r
-    """
+# -----------------------------------------------------------
+# SERVICE → INTEGER ID MAP (70 services)
+# -----------------------------------------------------------
+SERVICE_MAP = {
+    "IRC": 0,
+    "X11": 1,
+    "Z39_50": 2,
+    "aol": 3,
+    "auth": 4,
+    "bgp": 5,
+    "courier": 6,
+    "csnet_ns": 7,
+    "ctf": 8,
+    "daytime": 9,
+    "discard": 10,
+    "domain": 11,
+    "domain_u": 12,
+    "echo": 13,
+    "eco_i": 14,
+    "ecr_i": 15,
+    "efs": 16,
+    "exec": 17,
+    "finger": 18,
+    "ftp": 19,
+    "ftp_data": 20,
+    "gopher": 21,
+    "harvest": 22,
+    "hostnames": 23,
+    "http": 24,
+    "http_2784": 25,
+    "http_443": 26,
+    "http_8001": 27,
+    "imap4": 28,
+    "iso_tsap": 29,
+    "klogin": 30,
+    "kshell": 31,
+    "ldap": 32,
+    "link": 33,
+    "login": 34,
+    "mtp": 35,
+    "name": 36,
+    "netbios_dgm": 37,
+    "netbios_ns": 38,
+    "netbios_ssn": 39,
+    "netstat": 40,
+    "nnsp": 41,
+    "nntp": 42,
+    "ntp_u": 43,
+    "other": 44,
+    "pm_dump": 45,
+    "pop_2": 46,
+    "pop_3": 47,
+    "printer": 48,
+    "private": 49,
+    "red_i": 50,
+    "remote_job": 51,
+    "rje": 52,
+    "shell": 53,
+    "smtp": 54,
+    "sql_net": 55,
+    "ssh": 56,
+    "sunrpc": 57,
+    "supdup": 58,
+    "systat": 59,
+    "telnet": 60,
+    "tftp_u": 61,
+    "tim_i": 62,
+    "time": 63,
+    "urh_i": 64,
+    "urp_i": 65,
+    "uucp": 66,
+    "uucp_path": 67,
+    "vmnet": 68,
+    "whois": 69
+}
+# Base NSL-KDD 41 feature names (same as your training notebook)
+base_features = [
+ 'duration','protocol_type','service','flag','src_bytes','dst_bytes','land',
+ 'wrong_fragment','urgent','hot','num_failed_logins','logged_in',
+ 'num_compromised','root_shell','su_attempted','num_root','num_file_creations',
+ 'num_shells','num_access_files','num_outbound_cmds','is_host_login',
+ 'is_guest_login','count','srv_count','serror_rate','srv_serror_rate',
+ 'rerror_rate','srv_rerror_rate','same_srv_rate','diff_srv_rate',
+ 'srv_diff_host_rate','dst_host_count','dst_host_srv_count',
+ 'dst_host_same_srv_rate','dst_host_diff_srv_rate','dst_host_same_src_port_rate',
+ 'dst_host_srv_diff_host_rate','dst_host_serror_rate','dst_host_srv_serror_rate',
+ 'dst_host_rerror_rate','dst_host_srv_rerror_rate'
+]
+# Numeric → 5-class mapping used during training
+label_to_5class = {}
+
+# NORMAL
+label_to_5class[0] = "normal"
+
+# DOS
+for x in [1,2,3,4,5,6,7,8,9,10,11]:
+    label_to_5class[x] = "dos"
+
+# PROBE
+for x in [12,13,14,15]:
+    label_to_5class[x] = "probe"
+
+# R2L
+for x in [16,17,18,19,20,21,22,23,24,25,26,27]:
+    label_to_5class[x] = "r2l"
+
+# U2R
+for x in [28,29,30,31,32,33,34,35,36,37,38,39]:
+    label_to_5class[x] = "u2r"
+
+
+def preprocess_multiclass(df_raw):
     df = df_raw.copy()
 
-    # Fix shape: if 42 cols, add dummy difficulty
+    # Fix columns (your notebook used only 42 + 1 label)
     if df.shape[1] == 42:
-        df[42] = 0
-    elif df.shape[1] != 43:
-        raise ValueError(f"Expected 42 or 43 columns, got {df.shape[1]}")
+        df.columns = base_features + ["label"]
+    else:
+        df = df.iloc[:, :43]
+        df.columns = base_features + ["label"]
 
-    # Proper column names
-    df.columns = NSL_COLUMNS
+    # Convert label to numeric (same as notebook)
+    df["label_num"] = pd.to_numeric(df["label"], errors="coerce")
+    df = df.dropna(subset=["label_num"]).reset_index(drop=True)
+    df["label_num"] = df["label_num"].astype(int)
 
-    # Remove accidental header row
-    if not str(df.loc[0, "duration"]).replace(".", "", 1).isdigit():
-        df = df.iloc[1:].reset_index(drop=True)
+    # Map to 5 classes
+    df["target"] = df["label_num"].map(label_to_5class)
 
-    # ---- LABELS: numeric 0..4 → 5-class strings ----
-    y_raw_numeric = (
-    df["label"]
-    .astype(str)
-    .str.replace(".0", "", regex=False)
-    .astype(int)
-)
+    # ---------- INPUT FEATURES ----------
+    X = df.drop(columns=["label", "label_num", "target"])
 
-    y_labels = y_raw_numeric.map(INT_TO_CLASS)   # normal/dos/probe/r2l/u2r
-
-    # ---- FEATURES ----
     cat_cols = ["protocol_type", "service", "flag"]
-    drop_cols = cat_cols + ["label", "difficulty"]
-    numeric_cols = [c for c in df.columns if c not in drop_cols]
 
-    numeric_part = df[numeric_cols].apply(pd.to_numeric, errors="coerce").fillna(0.0)
+    # One-hot categorical
+    cat_test = pd.get_dummies(X[cat_cols], prefix=cat_cols)
+    cat_test = cat_test.loc[:, ~cat_test.columns.duplicated()]
 
-    # Manual one-hot encoding based ONLY on training feature list
-    df_cat = pd.DataFrame(index=df.index)
+    # Align with training
+    all_cat_cols = [
+        c for c in multi_features
+        if any(c.startswith(p) for p in ["protocol_type_", "service_", "flag_"])
+    ]
+    cat_test = cat_test.reindex(columns=all_cat_cols, fill_value=0)
 
-    for col in cat_cols:
-        prefix = col + "_"
-        available_features = [f for f in multi_features if f.startswith(prefix)]
-        values = df[col].astype(str)
+    # Numeric portion
+    num_test = X.drop(columns=cat_cols).astype(float)
 
-        for feat in available_features:
-            cat_value = feat[len(prefix):]
-            df_cat[feat] = (values == cat_value).astype(int)
+    # Combine in correct order
+    X_final = pd.concat(
+        [num_test.reset_index(drop=True), cat_test.reset_index(drop=True)],
+        axis=1
+    )
 
-    full = pd.concat([numeric_part, df_cat], axis=1)
-
-    # Ensure all model features exist
+    # Add missing training columns
     for col in multi_features:
-        if col not in full.columns:
-            full[col] = 0
+        if col not in X_final.columns:
+            X_final[col] = 0
 
-    full = full[multi_features].astype(float)
+    # Reorder
+    X_final = X_final[multi_features].astype(float)
 
-    # Scale
-    X_scaled = multi_scaler.transform(full)
+    # Scale using training scaler
+    X_scaled = multi_scaler.transform(X_final)
 
-    # Return X + string labels
-    return X_scaled, y_labels.values, df
-# -----------------------------------------------------------
+    # RETURN 3 VALUES — THE FIX
+    return X_scaled, df["target"].values, df
 # UI
 # -----------------------------------------------------------
 st.markdown(
@@ -428,64 +529,81 @@ if uploaded is not None:
 
     # -------------------------- MULTICLASS -------------------------
     # -------------------------- MULTICLASS -------------------------
-    if mode == "Multiclass Classification":
-        X, y_true, df_named = preprocess_multiclass(df_raw)  # y_true are strings
+    # -------------------------- MULTICLASS -------------------------
+# -------------------------- MULTICLASS -------------------------
+if mode == "Multiclass Classification" and uploaded is not None:
 
-        model_name = st.selectbox("Select Multiclass Model", list(MULTI_MODEL_FILES.keys()))
-        model = joblib.load(f"{MODELS_DIR}/{MULTI_MODEL_FILES[model_name]}")
+    # 1) Preprocess
+    X, y_true_raw, df_named = preprocess_multiclass(df_raw)
 
-        # model predictions (normally 0..4 integers)
-        raw_pred = model.predict(X)
+    # 2) Load model
+    model_name = st.selectbox("Select Multiclass Model", list(MULTI_MODEL_FILES.keys()))
+    model = joblib.load(f"{MODELS_DIR}/{MULTI_MODEL_FILES[model_name]}")
 
-        # Map predictions to 5-class strings
-        y_pred = []
-        for v in raw_pred:
-            if isinstance(v, (int, np.integer, np.int64, np.int32)):
-                y_pred.append(INT_TO_CLASS.get(int(v), "unknown"))
-            else:
-                # if model somehow outputs string labels (rare), just pass through
-                y_pred.append(str(v).lower())
+    # 3) True labels
+    y_true = np.array(y_true_raw, dtype=str)
 
-        y_pred = np.array(y_pred)
+    # 4) Predictions
+    raw_pred = model.predict(X)
+    y_pred = np.array(raw_pred, dtype=str)
 
-        # We expect no 'unknown' for NSLKDDTest; but just in case:
-        valid_mask = y_pred != "unknown"
-        y_true_valid = y_true[valid_mask]
-        y_pred_valid = y_pred[valid_mask]
+    # 5) Metrics
+    acc = accuracy_score(y_true, y_pred)
+    prec = precision_score(y_true, y_pred, average="weighted", zero_division=0)
+    rec = recall_score(y_true, y_pred, average="weighted", zero_division=0)
+    f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
 
-        if len(y_true_valid) == 0:
-            st.error("All predictions mapped to 'unknown'. Cannot compute metrics.")
-        else:
-            # METRICS
-            acc = accuracy_score(y_true_valid, y_pred_valid)
-            prec = precision_score(y_true_valid, y_pred_valid,
-                                   average="weighted", zero_division=0)
-            rec = recall_score(y_true_valid, y_pred_valid,
-                               average="weighted", zero_division=0)
-            f1 = f1_score(y_true_valid, y_pred_valid,
-                          average="weighted", zero_division=0)
+    st.subheader("📊 Multiclass Metrics (5-class)")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Accuracy", f"{acc*100:.2f}%")
+    c2.metric("Precision", f"{prec*100:.2f}%")
+    c3.metric("Recall", f"{rec*100:.2f}%")
+    c4.metric("F1 Score", f"{f1*100:.2f}%")
 
-            st.subheader("📊 Multiclass Metrics (5-class)")
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Accuracy", f"{acc*100:.2f}%")
-            c2.metric("Precision", f"{prec*100:.2f}%")
-            c3.metric("Recall", f"{rec*100:.2f}%")
-            c4.metric("F1 Score", f"{f1*100:.2f}%")
+    # Confusion Matrix
+    cm = confusion_matrix(y_true, y_pred,
+                          labels=["normal", "dos", "probe", "r2l", "u2r"])
 
-            # CONFUSION MATRIX in fixed class order
-            cm = confusion_matrix(
-                y_true_valid,
-                y_pred_valid,
-                labels=MULTI_CLASSES
+    fig = go.Figure(go.Heatmap(
+        z=cm,
+        x=["normal", "dos", "probe", "r2l", "u2r"],
+        y=["normal", "dos", "probe", "r2l", "u2r"],
+        colorscale="Blues",
+        text=cm,
+        texttemplate="%{text}"
+    ))
+    fig.update_layout(title="Confusion Matrix — Multiclass (5-Class)")
+    st.plotly_chart(fig, width="stretch")
+
+    # ---------------- ROC CURVE (Inside the block!) ----------------
+    try:
+        if hasattr(model, "predict_proba"):
+            y_proba = model.predict_proba(X)
+
+            CLASS_ORDER = ["normal", "dos", "probe", "r2l", "u2r"]
+            y_true_ids = np.array([CLASS_ORDER.index(v) for v in y_true])
+
+            fig_roc = go.Figure()
+
+            for i, cls in enumerate(CLASS_ORDER):
+                fpr, tpr, _ = roc_curve((y_true_ids == i).astype(int), y_proba[:, i])
+                roc_auc = auc(fpr, tpr)
+
+                fig_roc.add_trace(go.Scatter(
+                    x=fpr, y=tpr, mode="lines",
+                    name=f"{cls} (AUC={roc_auc:.3f})"
+                ))
+
+            fig_roc.update_layout(
+                title="ROC Curve — Multiclass (One-vs-Rest)",
+                xaxis_title="False Positive Rate",
+                yaxis_title="True Positive Rate"
             )
 
-            fig = go.Figure(go.Heatmap(
-                z=cm,
-                x=MULTI_CLASSES,
-                y=MULTI_CLASSES,
-                colorscale="Blues",
-                text=cm,
-                texttemplate="%{text}"
-            ))
-            fig.update_layout(title="Confusion Matrix — Multiclass (5-Class)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig_roc, use_container_width=True)
+
+        else:
+            st.info("Selected model does not support probability outputs (predict_proba).")
+
+    except Exception as e:
+        st.error(f"ROC Curve could not be generated: {e}")
