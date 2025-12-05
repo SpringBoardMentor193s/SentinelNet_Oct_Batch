@@ -45,6 +45,15 @@ X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_scaled, Y_trai
 # print("\nOriginal Train dataset value counts:", Y_train.value_counts())
 # print("\nResampled Train dataset value counts:", Y_train_resampled.value_counts())
 
+# with open("SMOTE.pkl", "wb") as f:
+#     pickle.dump(smote, f)
+
+# with open("Scaler.pkl", "wb") as f:
+#     pickle.dump(scaler, f)
+
+# with open("Feature_Columns.pkl", 'wb') as f:
+#     pickle.dump(X_train.columns, f)
+
 # -------------------- Model Training --------------------
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -281,30 +290,30 @@ print("\nModel Evaluation Results on Test Dataset:\n")
 table_str = tabulate(results_df, headers='keys', tablefmt='fancy_grid', showindex=False)
 print(table_str)
 
-with open('Multiclass Test Dataset Results.txt', 'w', encoding='utf-8') as f:
-    f.write(table_str)
-print("Evaluation metrics saved as 'Multiclass Test Dataset Results.txt'")
+# with open('Multiclass Test Dataset Results.txt', 'w', encoding='utf-8') as f:
+#     f.write(table_str)
+# print("Evaluation metrics saved as 'Multiclass Test Dataset Results.txt'")
 
-with open("Random_Forest.pkl", "wb") as f:
-    pickle.dump(models["Random Forest"], f)
+# with open("Random_Forest.pkl", "wb") as f:
+#     pickle.dump(models["Random Forest"], f)
 
-with open("Logistic_Regression.pkl", "wb") as f:
-    pickle.dump(models["Logistic Regression"], f)
+# with open("Logistic_Regression.pkl", "wb") as f:
+#     pickle.dump(models["Logistic Regression"], f)
 
-with open("XGBoost.pkl", "wb") as f:
-    pickle.dump(models["XGBoost"], f)
+# with open("XGBoost.pkl", "wb") as f:
+#     pickle.dump(models["XGBoost"], f)
 
-with open("LightGBM.pkl", "wb") as f:
-    pickle.dump(models["LightGBM"], f)
+# with open("LightGBM.pkl", "wb") as f:
+#     pickle.dump(models["LightGBM"], f)
 
-with open("Decision_Tree.pkl", "wb") as f:
-    pickle.dump(models["Decision Tree"], f)
+# with open("Decision_Tree.pkl", "wb") as f:
+#     pickle.dump(models["Decision Tree"], f)
 
-with open("KNN.pkl", "wb") as f:
-    pickle.dump(models["K-Nearest Neighbors"], f)
+# with open("KNN.pkl", "wb") as f:
+#     pickle.dump(models["K-Nearest Neighbors"], f)
 
-with open("Scaler.pkl", "wb") as f:
-    pickle.dump(scaler, f)
+# with open("Scaler.pkl", "wb") as f:
+#     pickle.dump(scaler, f)
 
-with open("Label_Encoder.pkl", "wb") as f:
-    pickle.dump(label_encoder, f)
+# with open("Label_Encoder.pkl", "wb") as f:
+#     pickle.dump(label_encoder, f)
