@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pickle
 
 column_names = [
     'duration', 'protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes',
@@ -56,8 +57,8 @@ for col in train_cols:
         
 X_test_encoded=X_test_encoded[train_cols]
 
-print("\nTrain dataset after encoding:", X_train_encoded.shape)
-print("Test dataset after encoding:", X_test_encoded.shape)
+# print("\nTrain dataset after encoding:", X_train_encoded.shape)
+# print("Test dataset after encoding:", X_test_encoded.shape)
 
 # -------------------- Standard Scaler ---------------------
 from sklearn.preprocessing import StandardScaler
@@ -80,6 +81,9 @@ X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_scaled, Y_trai
 # print("\nResampled Train dataset shape:", X_train_resampled.shape)
 # print("\nOriginal Train dataset value counts:", Y_train.value_counts())
 # print("\nResampled Train dataset value counts:", Y_train_resampled.value_counts())
+
+# with open("Features.pkl", 'wb') as f:
+#     pickle.dump(X_train_encoded.columns, f)
 
 # -------------------- Models Training ---------------------
 from sklearn.linear_model import LogisticRegression
@@ -203,6 +207,39 @@ print("\nModel Evaluation Results on Test Dataset:\n")
 table = tabulate(Results_df, headers='keys', tablefmt='fancy_grid', showindex=False)
 print(table)
 
-with open('Test Dataset Results.txt', 'w', encoding='utf-8') as f:
-    f.write(table)
-print("Evaluation metrics saved as 'Test Dataset Results.txt'")
+# with open('Test Dataset Results.txt', 'w', encoding='utf-8') as f:
+#     f.write(table)
+# print("Evaluation metrics saved as 'Test Dataset Results.txt'")
+
+# with open('Logistic_Regression_Model.pkl', 'wb') as f:
+#     pickle.dump(models['Logistic Regression'], f)
+
+# with open('Decision_Tree_Model.pkl', 'wb') as f:
+#     pickle.dump(models['Decision Tree'], f)
+
+# with open('Random_Forest_Model.pkl', 'wb') as f:
+#     pickle.dump(models['Random Forest'], f)
+
+# with open('KNN_Model.pkl', 'wb') as f:
+#     pickle.dump(models['K-Nearest Neighbors'], f)
+
+# with open('Gradient_Boosting_Model.pkl', 'wb') as f:
+#     pickle.dump(models['Gradient Boosting'], f)
+
+# with open('XGBoost_Model.pkl', 'wb') as f:
+#     pickle.dump(models['XGBoost'], f)
+
+# with open('LightGBM_Model.pkl', 'wb') as f:
+#     pickle.dump(models['LightGBM'], f)
+
+# with open('AdaBoost_Model.pkl', 'wb') as f:
+#     pickle.dump(models['AdaBoost'], f)
+
+# with open('scaler.pkl', 'wb') as f:
+#     pickle.dump(scaler, f)
+
+# with open("One_Hot_Encoded_Columns.pkl", 'wb') as f:
+#     pickle.dump(train_cols, f)
+
+# with open("smote_sampler.pkl", 'wb') as f:
+#     pickle.dump(smote, f)
