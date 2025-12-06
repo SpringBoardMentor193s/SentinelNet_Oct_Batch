@@ -69,8 +69,8 @@ X_train_scaled = X_train_encoded.copy()
 X_test_scaled = X_test_encoded.copy()
 
 scaler = StandardScaler()
-X_train_scaled[numerical_cols] = scaler.fit_transform(X_train_encoded[numerical_cols])
-X_test_scaled[numerical_cols] = scaler.transform(X_test_encoded[numerical_cols])
+X_train_scaled = scaler.fit_transform(X_train_encoded)
+X_test_scaled = scaler.transform(X_test_encoded)
 
 # -------------------- SMOTE Analysis ---------------------
 from imblearn.over_sampling import SMOTE
@@ -82,8 +82,8 @@ X_train_resampled, Y_train_resampled = smote.fit_resample(X_train_scaled, Y_trai
 # print("\nOriginal Train dataset value counts:", Y_train.value_counts())
 # print("\nResampled Train dataset value counts:", Y_train_resampled.value_counts())
 
-# with open("Features.pkl", 'wb') as f:
-#     pickle.dump(X_train_encoded.columns, f)
+# with open("Models/NSL_KDD/Features.pkl", 'wb') as f:
+#     pickle.dump(list(X_train_encoded.columns), f)
 
 # -------------------- Models Training ---------------------
 from sklearn.linear_model import LogisticRegression
@@ -119,18 +119,18 @@ models = {
         min_samples_leaf=2
         ),
 
-    'K-Nearest Neighbors': KNeighborsClassifier(
-        n_neighbors=3, 
-        metric='minkowski', 
-        weights='distance'
-        ),
+    # 'K-Nearest Neighbors': KNeighborsClassifier(
+    #     n_neighbors=3, 
+    #     metric='minkowski', 
+    #     weights='distance'
+    #     ),
 
-    'Gradient Boosting': GradientBoostingClassifier(
-        n_estimators=200, 
-        learning_rate=0.1, 
-        max_depth=5, 
-        random_state=42
-        ),
+    # 'Gradient Boosting': GradientBoostingClassifier(
+    #     n_estimators=200, 
+    #     learning_rate=0.1, 
+    #     max_depth=5, 
+    #     random_state=42
+    #     ),
 
     'XGBoost': XGBClassifier(
         n_estimators=200, 
@@ -146,13 +146,13 @@ models = {
        force_row_wise = True, 
        verbose = -1,
        random_state=42
-       ),
+       )
 
-    'AdaBoost': AdaBoostClassifier(
-        n_estimators=150,
-        learning_rate=1.5,
-        random_state=42
-    )   
+    # 'AdaBoost': AdaBoostClassifier(
+    #     n_estimators=150,
+    #     learning_rate=1.5,
+    #     random_state=42
+    # )   
 }
 
 # -------------------- Model Training ---------------------
@@ -238,8 +238,8 @@ print(table)
 # with open('scaler.pkl', 'wb') as f:
 #     pickle.dump(scaler, f)
 
-# with open("One_Hot_Encoded_Columns.pkl", 'wb') as f:
-#     pickle.dump(train_cols, f)
+# with open("One_Hot_Encoded.pkl", 'wb') as f:
+#     pickle.dump(X_train_encoded, f)
 
 # with open("smote_sampler.pkl", 'wb') as f:
 #     pickle.dump(smote, f)
