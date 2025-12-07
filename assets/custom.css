@@ -1,0 +1,118 @@
+/* ---------------- Cyberpunk Theme Enhancements ---------------- */
+
+html, body {
+    background-color: #0b0f17 !important;
+}
+
+h1, h2, h3, h4 {
+    color: #0aff9d !important;
+    text-shadow: 0px 0px 10px rgba(0, 255, 180, 0.8);
+}
+
+/* Sidebar glow */
+.css-1d391kg {  
+    background-color: #111827 !important;
+    border-right: 2px solid #0aff9d !important;
+    box-shadow: 0px 0px 15px #00ffbf;
+}
+
+/* Buttons */
+.stButton>button {
+    background: linear-gradient(90deg, #00ffa3, #00d4ff);
+    color: black !important;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    box-shadow: 0px 0px 15px #00e6b8;
+    transition: 0.3s ease-in-out;
+}
+
+.stButton>button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 0px 25px #00ffa3;
+}
+
+/* Dataframe styling */
+.dataframe {
+    border: 1px solid #0aff9d !important;
+}
+
+/* Inputs */
+.stTextInput>div>div>input {
+    border: 1px solid #0aff9d !important;
+}
+
+/* Cards / Boxes */
+.block-container {
+    padding-top: 2rem;
+}
+
+div.stAlert {
+    border-left: 6px solid #0aff9d !important;
+    border-radius: 6px;
+}
+/* ===================== Animated Matrix Background ====================== */
+body {
+    background: black !important;
+    overflow-x: hidden;
+}
+
+.matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.20;
+}
+/* Glowing Neon Buttons */
+.stButton>button {
+  background: linear-gradient(90deg, #00ffa3, #00d4ff);
+  color: #000 !important;
+  border-radius: 10px;
+  padding: 0.6rem 1.1rem;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(0,255,163,0.25), 0 0 30px rgba(0,212,255,0.12);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.stButton>button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 18px rgba(0,255,163,0.35), 0 0 40px rgba(0,212,255,0.18);
+}
+
+/* Modal base (hidden by default) */
+.cyber-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%) scale(0.8);
+  background: linear-gradient(180deg, rgba(9,9,12,0.96), rgba(5,5,7,0.92));
+  border: 1px solid rgba(0,255,163,0.14);
+  border-radius: 12px;
+  padding: 18px;
+  width: 760px;
+  max-width: 95%;
+  z-index: 9999;
+  box-shadow: 0 0 40px rgba(0,255,163,0.08);
+  display: none;
+}
+.cyber-modal.show {
+  display: block;
+  animation: modalPop .18s ease forwards;
+}
+@keyframes modalPop {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(0.9) }
+  100% { opacity: 1; transform: translate(-50%,-50%) scale(1) }
+}
+
+/* Modal overlay */
+.cyber-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9990;
+  display:none;
+}
+.cyber-overlay.show { display:block; }
