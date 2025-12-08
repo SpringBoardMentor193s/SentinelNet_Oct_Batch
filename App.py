@@ -1,12 +1,14 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import pickle
 import os
-from datetime import datetime
+import io
 import time
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+import pickle
+import numpy as np
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+from datetime import datetime
+from sklearn.preprocessing import label_binarize
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, roc_curve, auc
 
 # -------------------- Load Pickles --------------------
 def load_pickle(path):
@@ -23,30 +25,83 @@ def try_load_pickle(path):
     except FileNotFoundError:
         return None
 
+# ------------------------------------------------------------
+    # 1. LOAD MODEL
+    # ------------------------------------------------------------
+def load_model(model_path):
+    with open(model_path, "rb") as f:
+        return pickle.load(f)
+
+    # ------------------------------------------------------------
+    # 2. PREPROCESS LIVE PACKET
+    # ------------------------------------------------------------
+
+
+    # ------------------------------------------------------------
+    # 3. MAP LABELS → NORMAL / INTRUSION
+    # ------------------------------------------------------------
+
+
 # -------------------- Preprocessing --------------------
 def preprocess_nsl(df, feature_columns, scaler, names):
     df_proc = df.copy()
+    categorical_cols = [c for c in ["protocol_type", "service", "flag"] if c in df_proc.columns]
+
     if "difficulty" in df_proc.columns:
         df_proc = df_proc.drop(columns=["difficulty"])
-    categorical_cols = [c for c in ["protocol_type", "service", "flag"] if c in df_proc.columns]
+
     if categorical_cols:
         df_proc = pd.get_dummies(df_proc, columns=categorical_cols, drop_first=True)
+
     for col in feature_columns:
         if col not in df_proc.columns:
             df_proc[col] = 0
+
     df_proc = df_proc[feature_columns]
     X_scaled= scaler.transform(df_proc.values)
     X_df=pd.DataFrame(X_scaled, columns=df_proc.columns)
     return X_df, df_proc
+
 def preprocess_cicids(df, feature_columns, scaler):
     df_proc = df.copy()
+
     for col in feature_columns:
         if col not in df_proc.columns:
             df_proc[col] = 0
+
     df_proc = df_proc[feature_columns]
     X = scaler.transform(df_proc.values)
     X_df=pd.DataFrame(X, columns=df_proc.columns)
     return X_df, df_proc
+
+def preprocess_live_packet(packet_df, feature_columns, scaler, encoder=None):
+        df = packet_df.copy()
+
+        # Fill missing values
+        df = df.fillna(0)
+
+        # Detect categorical columns
+        categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
+
+        # Handle categorical features if encoder exists
+        if encoder is not None and len(categorical_cols) > 0:
+            encoded = encoder.transform(df[categorical_cols])
+            encoded_df = pd.DataFrame(encoded, columns=encoder.get_feature_names_out())
+            df = pd.concat([df.drop(columns=categorical_cols), encoded_df], axis=1)
+        elif len(categorical_cols)>0:
+            df=pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+        # Align missing columns
+        for col in feature_columns:
+            if col not in df.columns:
+                df[col] = 0
+
+        df = df[feature_columns]
+        df= df.apply(pd.to_numeric, errors="coerce").fillna(0)
+
+        # Scale the numeric features
+        df = pd.DataFrame(scaler.transform(df), columns=feature_columns)
+
+        return df
 
 # -------------------- Models Map --------------------
 MODELS_MAP = {
@@ -61,6 +116,7 @@ MODELS_MAP = {
         "Scaler": "Models/NSL_KDD/scaler.pkl",
         "Feature_Columns": "Models/NSL_KDD/Features.pkl"
     },
+
     "CICIDS-2017": {
         "Binary": {
             "Logistic_Regression": "Models/CICIDS-2017/Binary_Class/Logistic_Regression.pkl",
@@ -82,6 +138,68 @@ MODELS_MAP = {
     }
 }
 
+def convert_to_binary(label):
+        label = str(label).upper()
+        if label == "BENIGN":
+            return "Normal"
+        elif label == "NORMAL":   # NSL-KDD
+            return "Normal"
+        else:
+            return "Intrusion"
+
+def live_monitor(model, feature_columns, scaler, encoder=None):
+        st.subheader("🔴 Live Network Monitoring")
+
+        placeholder = st.empty()
+        live_results = []
+
+        while True:
+            # ----------------------------------------------------
+            # Simulate live incoming packet (Replace with real data source)
+            # ----------------------------------------------------
+            packet = {
+                col: np.random.rand() * 100 if "flag" not in col else "S0"
+                for col in feature_columns
+            }
+            packet_df = pd.DataFrame([packet])
+
+            # ----------------------------------------------------
+            # Preprocess packet
+            # ----------------------------------------------------
+            processed = preprocess_live_packet(packet_df, feature_columns, scaler, encoder)
+
+            # ----------------------------------------------------
+            # Prediction
+            # ----------------------------------------------------
+            prediction = model.predict(processed)[0]
+            binary_label = convert_to_binary(prediction)
+
+            # Save result
+            live_results.append({
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "original_label": prediction,
+                "binary_label": binary_label
+            })
+
+            # ----------------------------------------------------
+            # Dashboard Output
+            # ----------------------------------------------------
+            df_live = pd.DataFrame(live_results)
+
+            with placeholder.container():
+                st.write("### Latest Predictions")
+                st.dataframe(df_live.tail(10))
+
+                # Count Normal / Intrusion
+                count_normal = sum(df_live["binary_label"] == "Normal")
+                count_intrusion = sum(df_live["binary_label"] == "Intrusion")
+
+                st.metric("Normal Traffic", count_normal)
+                st.metric("Intrusions Detected", count_intrusion)
+
+            # Slow down loop (Adjust based on traffic)
+            time.sleep(1)
+
 # -------------------- Models Metrics --------------------
 Models_Metrics={
     "NSL-KDD": {
@@ -91,6 +209,7 @@ Models_Metrics={
         "XGBoost": {"accuracy": 0.8204, "precision": 0.9699},
         "LightGBM": {"accuracy": 0.8909, "precision": 0.9697},
     },
+
     "CICIDS-2017": {
         "Binary": {
             "Logistic_Regression": {"accuracy": 0.9264, "precision": 0.9154 },
@@ -128,22 +247,27 @@ st.title("SentinelNet — AI-Powered Network Intrusion Detection System (NIDS)")
 
 # -------------------- SideBar --------------------
 st.sidebar.header("Configuration")
+
 st.sidebar.subheader("Detection Mode")
 mode = st.sidebar.radio("Select Mode",["File Analysis", "Live Monitoring"])
 st.sidebar.markdown("<hr style='margin:10px 0;'>", unsafe_allow_html=True)
+
 st.sidebar.subheader("Dataset")
 dataset_choice = st.sidebar.selectbox("Choose Dataset:", ["NSL-KDD", "CICIDS-2017"])
 class_type = None
 if dataset_choice == "CICIDS-2017":
     st.sidebar.subheader("Classification Type")
     class_type = st.sidebar.selectbox("Choose Type:", ["Binary", "Multiclass"])
+
 if dataset_choice == "NSL-KDD":
     available_models = list(MODELS_MAP["NSL-KDD"]["Models"].keys())
 else:
     available_models = list(MODELS_MAP["CICIDS-2017"][class_type].keys())
+
 st.sidebar.subheader("Algorithm")
 algorithm = st.sidebar.selectbox("Select Algorithm:", available_models)
 st.sidebar.markdown("<hr style='margin:10px 0;'>", unsafe_allow_html=True)
+
 st.sidebar.subheader("Model Details")
 if dataset_choice == "NSL-KDD":
     metrics= Models_Metrics["NSL-KDD"][algorithm]
@@ -159,9 +283,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 st.sidebar.subheader("Accuracy:")
-st.sidebar.markdown(f"<div class='metric-value'>{metrics['accuracy']:.2f}%</div>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<div class='metric-value'>{metrics['accuracy']*100:.2f}%</div>", unsafe_allow_html=True)
 st.sidebar.subheader("Precision:")
-st.sidebar.markdown(f"<div class='metric-value'>{metrics['precision']:.2f}%</div>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<div class='metric-value'>{metrics['precision']*100:.2f}%</div>", unsafe_allow_html=True)
+
 try:
     if dataset_choice == "NSL-KDD":
         model_path = MODELS_MAP["NSL-KDD"]["Models"][algorithm]
@@ -179,6 +304,7 @@ except Exception as e:
 # -------------------- Live Monitoring --------------------
 if mode == "Live Monitoring":
     st.subheader("Live Network Monitoring")
+
     col1, col2, col3= st.columns(3)
     with col1:
         start=st.button("Start Monitoring")
@@ -186,259 +312,295 @@ if mode == "Live Monitoring":
         stop=st.button("Stop Monitoring")
     with col3:
         clear=st.button("Clear Data") 
+
     if start:
         st.success("Live monitoring started...")
-        # Placeholder for live monitoring logic
+        model=load_model(model_path)
+        scaler=load_pickle(scaler_path)
+        feature_columns=load_pickle(features_path)
+        encoder=try_load_pickle(label_encoder_path )if dataset_choice=="CICIDS-2017" else None
+        live_monitor(model, feature_columns, scaler,encoder)
     if stop:
-        st.success("Live Monitoring Stoped.")
+            st.success("Live Monitoring Stoped.")
     if clear:
-        st.success("Data cleared.")
+            st.success("Data cleared.")
+
     m1, m2, m3, m4=st.columns(4)
     with m1:
-        st.metric("Total Packets", "0")
+            st.metric("Total Packets", "0")
     with m2:
-        st.metric("Normal", "0")
+            st.metric("Normal", "0")
     with m3:
-        st.metric("Intrusions", "0")
+            st.metric("Intrusions", "0")
     with m4:
-        st.metric("Intrusion Rate", "0%")
-    
+            st.metric("Intrusion Rate", "0%")
+        
     st.subheader("Recent Alerts")
     st.info("No alerts to display.")
     st.stop()
-
-# -------------------- File Analysis --------------------
-st.subheader("File Analysis")
-uploaded_file = st.file_uploader("Upload CSV (files)", type=["csv"])
-if uploaded_file is None:
-    st.stop()
-def load_uploaded_csv(uploaded_file):
-    uploaded_file.seek(0)
-    try:
-        df=pd.read_csv(uploaded_file)
-    except Exception:
-        uploaded_file.seek(0)
-        df=pd.read_csv(uploaded_file, header=None)
-    if dataset_choice =="NSL-KDD":
-        if df.shape[1] == len(NSL_KDD_COLUMN_NAMES):
-            df.columns = NSL_KDD_COLUMN_NAMES
-        else:
-            st.error(
-                f"Uploaded CSV has {df.shape[1]} columns,"
-                f"but NSL-KDD requires {len(NSL_KDD_COLUMN_NAMES)} columns."
-            )
-            st.stop()
-    return df
-df = load_uploaded_csv(uploaded_file)
-st.write("### Uploaded Data Review")
-st.dataframe(df.head())
-
-try:
-    model = load_pickle(model_path)
-except FileNotFoundError as e:
-    st.error(str(e))
-    st.stop()
-scaler = try_load_pickle(scaler_path)
-if scaler is None:
-    st.error(f"Scaler not found at `{scaler_path}`.")
-    st.stop()
-feature_columns = try_load_pickle(features_path)
-if feature_columns is None:
-    st.error(f"Feature columns not found at `{features_path}`.")
-    st.stop()
-label_encoder = None
-if dataset_choice == "CICIDS-2017":
-    label_encoder = try_load_pickle(label_encoder_path)
-if st.button("Evaluate"):
-    t0 = datetime.now()
-    st.info("Preprocessing and predicting...")
-    try:
-        if dataset_choice == "NSL-KDD":
-            X, aligned_df = preprocess_nsl(df, feature_columns, scaler, names=NSL_KDD_COLUMN_NAMES)
-        else:
-            X, aligned_df = preprocess_cicids(df, feature_columns, scaler)
-        preds = model.predict(X)
-        if label_encoder is not None:
-            try:
-                preds_decoded = label_encoder.inverse_transform(preds)
-            except Exception:
-                preds_decoded = preds.astype(str)
-        else:
-            preds_decoded = preds.astype(str)
-        results_df = df.reset_index(drop=True).copy()
-        results_df["Prediction"] = preds_decoded
-        st.success("Prediction finished.")
-        st.write("### Results")
-        st.dataframe(results_df.head())
-    except Exception as err:
-        st.error(f"Error during evaluation: {err}")
-
-# # import streamlit as st
-# import pandas as pd
-# import numpy as np
-# import time
-# import pickle
-# import random
-
-# # ----------------------
-# # Load model components
-# # ----------------------
-# model = pickle.load(open("Models/NSL_KDD/Random_Forest_Model.pkl", "rb"))
-# scaler = pickle.load(open("Models/NSL_KDD/scaler.pkl", "rb"))
-# encoder = pickle.load(open("Models/NSL_KDD/One_Hot_Encoded.pkl", "rb"))
-
-# # ----------------------
-# # Load dataset for simulation
-# # ----------------------
-# df_live = pd.read_csv("Dataset/KDD_Train.csv")   # use a small CSV
-
-# categorical_cols = ["flag"]
-# numeric_cols = ["packet_length","src_port","dst_port","protocol"]
-
-# # ----------------------
-# # Preprocessing function
-# # ----------------------
-# def preprocess_live(df):
-#     df = df.copy()
-
-#     # --------------------------------------
-#     # Case 1 → NSL-KDD
-#     # --------------------------------------
-#     if "flag" in df.columns:
-#         categorical_cols = ["protocol_type", "service", "flag"]
-
-#         # Apply one-hot encoder used during training
-#         df_encoded = pd.get_dummies(df[categorical_cols])
-
-#         # Align columns with training columns
-#         for col in feature_columns:
-#             if col not in df_encoded.columns:
-#                 df_encoded[col] = 0
-
-#         df_encoded = df_encoded[feature_columns]
-
-#         # Scale numerical values
-#         df_num = scaler.transform(df[numeric_cols])
-
-#         final = pd.concat([
-#             pd.DataFrame(df_num, columns=numeric_cols),
-#             df_encoded
-#         ], axis=1)
-
-#         return final
-
-#     # --------------------------------------
-#     # Case 2 → CICIDS
-#     # --------------------------------------
-#     # else:
-#     #     # numeric only
-#     #     df_num = Scaler.transform(df[numerical_cols])
-
-#     #     # apply label encoder for multiclass if needed
-#     #     # NOTE: label encoder is only for labels, not features
-#     #     final = pd.DataFrame(df_num, columns=numerical_cols_cicids)
-
-#     #     return final
-
-# # def preprocess_live(df):
-# #     df_cat = encoder.transform(df[categorical_cols])
-# #     df_num = scaler.transform(df[numeric_cols])
-
-# #     final = pd.concat([
-# #         pd.DataFrame(df_num, columns=numeric_cols),
-# #         pd.DataFrame(df_cat, columns=encoder.get_feature_names_out())
-# #     ], axis=1)
-
-# #     return final
-
-# # ----------------------
-# # Streamlit UI
-# # ----------------------
-# st.title("🟢 Live Network Monitoring (Simulation Mode)")
-
-# placeholder = st.empty()
-
-# if st.button("Start Live Monitoring"):
-#     st.success("Simulation Started...")
-
-#     for i in range(200):          # number of packets to simulate
-#         # pick a random row from dataset
-#         row = df_live.sample(1).reset_index(drop=True)
-
-#         processed = preprocess_live(row)
-#         pred = model.predict(processed)[0]
-
-#         with placeholder.container():
-#             st.write("### Latest Packet")
-#             st.json(row.to_dict(orient="records")[0])
-
-#             if pred == 1:
-#                 st.error("🚨 Intrusion Detected!")
-#             else:
-#                 st.success("✔ Normal Traffic")
-
-#         time.sleep(0.4)
-
-
-
-    #     # If ground truth present, compute metrics
-    #     ground_truth_col = None
-    #     for cand in ["class", "label", "Label", "CLASS", "Attack", "attack", "binary_attack"]:
-    #         if cand in df.columns:
-    #             ground_truth_col = cand
-    #             break
-
-    #     if ground_truth_col is not None:
-    #         y_true = df[ground_truth_col].values
-    #         y_pred = preds_decoded
-
-    #         # make sure arrays have same dtype shape for metrics (cast to str for safety)
-    #         y_true_s = np.array(y_true).astype(str)
-    #         y_pred_s = np.array(y_pred).astype(str)
-
-    #         # choose averaging
-    #         avg = "binary" if len(np.unique(y_true_s)) == 2 else "weighted"
-
-    #         try:
-    #             acc = accuracy_score(y_true_s, y_pred_s)
-    #             prec = precision_score(y_true_s, y_pred_s, average=avg, zero_division=0)
-    #             rec = recall_score(y_true_s, y_pred_s, average=avg, zero_division=0)
-    #             f1 = f1_score(y_true_s, y_pred_s, average=avg, zero_division=0)
-
-    #             st.write("### Evaluation Metrics")
-    #             st.write(f"**Accuracy:** {acc:.4f}")
-    #             st.write(f"**Precision ({avg}):** {prec:.4f}")
-    #             st.write(f"**Recall ({avg}):** {rec:.4f}")
-    #             st.write(f"**F1-score ({avg}):** {f1:.4f}")
-
-    #             # Confusion matrix
-    #             labels = np.unique(np.concatenate([y_true_s, y_pred_s]))
-    #             cm = confusion_matrix(y_true_s, y_pred_s, labels=labels)
-    #             fig, ax = plt.subplots(figsize=(6, 5))
-    #             im = ax.imshow(cm, interpolation='nearest', aspect='auto')
-    #             ax.set_title("Confusion Matrix")
-    #             plt.colorbar(im, ax=ax)
-    #             ax.set_xticks(np.arange(len(labels)))
-    #             ax.set_yticks(np.arange(len(labels)))
-    #             ax.set_xticklabels(labels, rotation=45, ha="right")
-    #             ax.set_yticklabels(labels)
-    #             for i in range(len(labels)):
-    #                 for j in range(len(labels)):
-    #                     ax.text(j, i, format(cm[i, j], 'd'),
-    #                             ha="center", va="center",
-    #                             color="white" if cm[i, j] > cm.max()/2 else "black")
-    #             st.pyplot(fig)
-    #         except Exception as exc:
-    #             st.warning(f"Could not compute metrics: {exc}")
-    #     else:
-    #         st.info("No ground-truth label column found; skipping metric computation.")
-
-    #     # Download results
-    #     csv_bytes = results_df.to_csv(index=False).encode()
-    #     st.download_button("Download predictions CSV", csv_bytes, "nids_predictions.csv", "text/csv")
-
-    #     t1 = datetime.now()
-    #     st.write(f"Completed in {(t1 - t0).total_seconds():.2f} seconds.")
+    
 
     
-        # do not re-raise so app stays up
+
+    # ------------------------------------------------------------
+    # 4. LIVE MONITORING LOOP
+    # ------------------------------------------------------------
+    
+
+    
+
+# -------------------- File Analysis --------------------
+else:
+    st.subheader("File Analysis")
+
+    uploaded_file = st.file_uploader("Upload CSV (files)", type=["csv"])
+    if uploaded_file is None:
+        st.stop()
+
+    def load_uploaded_csv(uploaded_file):
+        uploaded_file.seek(0)
+        try:
+            df=pd.read_csv(uploaded_file)
+        except Exception:
+            uploaded_file.seek(0)
+            df=pd.read_csv(uploaded_file, header=None)
+        if dataset_choice =="NSL-KDD":
+            if df.shape[1] == len(NSL_KDD_COLUMN_NAMES):
+                df.columns = NSL_KDD_COLUMN_NAMES
+            else:
+                st.error(
+                    f"Uploaded CSV has {df.shape[1]} columns,"
+                    f"but NSL-KDD requires {len(NSL_KDD_COLUMN_NAMES)} columns."
+                )
+                st.stop()
+        return df
+
+    df = load_uploaded_csv(uploaded_file)
+    st.write("### Uploaded Data Review")
+    st.dataframe(df.head())
+
+    try:
+        model = load_pickle(model_path)
+    except FileNotFoundError as e:
+        st.error(str(e))
+        st.stop()
+
+    scaler = try_load_pickle(scaler_path)
+    if scaler is None:
+        st.error(f"Scaler not found at `{scaler_path}`.")
+        st.stop()
+
+    feature_columns = try_load_pickle(features_path)
+    if feature_columns is None:
+        st.error(f"Feature columns not found at `{features_path}`.")
+        st.stop()
+
+    label_encoder = None
+    if dataset_choice == "CICIDS-2017":
+        label_encoder = try_load_pickle(label_encoder_path)
+
+    if st.button("Evaluate"):
+        t0 = datetime.now()
+        st.info("Preprocessing and predicting...")
+        try:
+            if dataset_choice == "NSL-KDD":
+                X, aligned_df = preprocess_nsl(df, feature_columns, scaler, names=NSL_KDD_COLUMN_NAMES)
+            else:
+                X, aligned_df = preprocess_cicids(df, feature_columns, scaler)
+            preds = model.predict(X)
+            if label_encoder is not None:
+                try:
+                    preds_decoded = label_encoder.inverse_transform(preds)
+                except Exception:
+                    preds_decoded = preds.astype(str)
+            else:
+                preds_decoded = preds.astype(str)
+                preds_decoded = ["Normal" if p == 0 else "Intrusion" for p in preds]
+            results_df = df.reset_index(drop=True).copy()
+            results_df["Prediction"] = preds_decoded
+            
+            st.success("Prediction finished.")
+            st.write("### Results")
+            st.dataframe(results_df.head())
+            
+
+            st.subheader("Dataset Traffic Overview")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.write("Traffic Distribution:")
+                traffic_counts = results_df["Prediction"].value_counts()
+                pie_color={
+                    "Normal": "Green",
+                    "Intrusion":"Red"
+                }
+                fig_traffic = px.pie(
+                    names=traffic_counts.index,
+                    values=traffic_counts.values,  
+                    hole=0.3
+                )
+                fig_traffic.update_traces(
+                    marker=dict(
+                        colors=[pie_color[label_encoder]for label_encoder in traffic_counts.index]
+                    )
+                )
+                fig_traffic.update_layout(
+                    height=250,
+                    width=250,
+                    margin=dict(l=0,r=0,t=40,b=0)
+                )
+                st.plotly_chart(fig_traffic, config={"responsive": True},width=500)
+
+            with col2:
+                st.write("Protocol Distribution:")
+                protocol_col = None
+                possible_cols = ["protocol_type", "protocol", "Protocol", "Protocol_Type"]
+
+                for c in possible_cols:
+                    if c in df.columns:
+                        protocol_col = c
+                        break
+
+                if protocol_col is None:
+                    st.error("❌ No protocol column found in uploaded dataset.")
+                else:
+                    protocol_counts = df[protocol_col].value_counts().reset_index()
+                    protocol_counts.columns=["Protocol","Count"]
+                    protocol_color={
+                        "tcp": "Blue",
+                        "udp": "Yellow",
+                        "icmp": "Violet"
+                    }
+                    fig_protocol = px.bar(
+                        protocol_counts,
+                        x="Protocol",
+                        y="Count",   
+                    )
+                    fig_protocol.update_layout(
+                        height=300,  
+                        uniformtext_minsize=12,
+                        uniformtext_mode="hide",
+                        margin=dict(t=20,b=20)
+                    )
+                    fig_protocol.update_traces(
+                        marker_color=[
+                            protocol_color.get(proto, "#1f77b4")
+                            for proto in protocol_counts["Protocol"]
+                        ],
+                    textposition="outside" 
+                    )
+                    st.plotly_chart(fig_protocol, config={"responsive": True}, width=500)
+                    
+            st.subheader("Classification Summary")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.write("Normal vs Intrusion Distribution:")
+
+                bar_counts = results_df["Prediction"].value_counts().reset_index()
+                bar_counts.columns = ["Label", "Count"]
+                colors = {
+                    "Normal": "Teal",      
+                    "Intrusion": "Red"
+                }   
+                fig_bar = px.bar(
+                            bar_counts,
+                            x="Label",
+                            y="Count",
+                            color="Label",
+                            color_discrete_map=colors
+                        )
+                fig_bar.update_layout(
+                            height=350,
+                            margin=dict(l=10, r=10, t=40, b=10)
+                        )
+                st.plotly_chart(fig_bar, width=500, config={"responsive": True})
+
+            with c2:
+                    st.write("Confusion Matrix:")
+                    possible_actual_cols =["Label", "label", "Class", "class","Actual","actual"]
+                    actual_col=None
+                    for col in possible_actual_cols:
+                        if col in df.columns:
+                            actual_col=col
+                            break
+                    if actual_col is None:
+                        st.error("Error: No actual label column found in uploaded dataset.")
+                        st.stop()
+                    y_true=df[actual_col].astype(str)
+                    mapping={
+                        0:"Normal",
+                        1:"Intrusion",
+                        "0": "Normal",
+                        "1":"Intrusion",
+                        "normal": "Normal", "anomaly":"Intrusion",
+                        "attack": "Intrusion"
+                    }
+                    y_true=y_true.replace(mapping)
+                    y_pred=results_df["Prediction"].astype(str).replace(mapping)
+                    labels=["Normal","Intrusion"]
+                    y_true=y_true.apply(lambda x: x if x in labels else "Intrusion")
+                    y_pred=y_pred.apply(lambda x: x if x in labels else "Intrusion")
+                    cm = confusion_matrix(y_true, y_pred, labels=labels)
+                    cm_df = pd.DataFrame(cm, index=labels, columns=labels)
+
+                    fig_cm = px.imshow(
+                        cm_df,
+                        text_auto=True,
+                        color_continuous_scale="Blues",
+                        labels=dict(x="Predicted", y="Actual", color="Count")
+                    )
+
+                    fig_cm.update_layout(
+                        height=350,
+                        margin=dict(l=10, r=10, t=40, b=10)
+                    )
+
+                    st.plotly_chart(fig_cm, width=500, config={"responsive": True})
+            if hasattr(model, "predict_proba"):
+                y_prob = model.predict_proba(X)[:, 1]  
+            else:
+                st.warning("Model does not support probability prediction. ROC curve cannot be computed.")
+                y_prob = None
+
+            if y_prob is not None:
+                y_true_bin = y_true.map({"Normal":0, "Intrusion":1}).values
+
+                fpr, tpr, thresholds = roc_curve(y_true_bin, y_prob)
+                roc_auc = auc(fpr, tpr)
+
+                st.write("ROC Curve:")
+                fig_roc = px.line(
+                    x=fpr, y=tpr,
+                    labels=dict(x='False Positive Rate', y='True Positive Rate'),
+                    width=600, height=400
+                )
+
+                fig_roc.add_shape(
+                    type='line', line=dict(dash='dash', color='gray'),
+                    x0=0, x1=1, y0=0, y1=1
+                )
+            
+                fig_roc.add_annotation(
+                    x=fpr[-1], y=tpr[-1],
+                    text=f"AUC = {roc_auc:.3f}",
+                    showarrow=True,
+                    arrowhead=2
+                )
+
+                st.plotly_chart(fig_roc, config={"responsive": True})
+
+            st.subheader("Full Predicted Dataset")
+            st.dataframe(results_df)  
+
+            csv_buffer = io.StringIO()
+            results_df.to_csv(csv_buffer, index=False)
+            csv_data = csv_buffer.getvalue()
+
+            st.download_button(
+                label="Download",
+                data=csv_data,
+                file_name="predicted_dataset.csv",
+                mime="text/csv"
+            )
+        except Exception as err:
+            st.error(f"Error during evaluation: {err}")
