@@ -13,6 +13,7 @@ from imblearn.over_sampling import SMOTE
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
 st.set_page_config(page_title="SentinelNet ML Tester", layout="wide")
 st.title("SentinelNet - ML Model Testing for Intrusion Detection")
 st.markdown("---")
@@ -86,3 +87,4 @@ if uploaded_file:
         st.dataframe(pd.DataFrame(report).transpose())
 else:
     st.info("Please upload a CSV file to continue.")
+
