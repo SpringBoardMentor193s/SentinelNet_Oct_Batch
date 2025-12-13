@@ -1,0 +1,93 @@
+/* ============================
+   CYBER-X DARK NEON THEME
+============================ */
+
+body {
+    background-color: #05070a !important;
+}
+
+/* Remove default Streamlit padding */
+.block-container {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+/* NEON HEADER */
+.neon-title {
+    color: #00ffe7;
+    font-size: 42px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px #00fff2, 0 0 20px #00fff2;
+}
+
+/* SECTION HEADINGS */
+.glow-header {
+    font-size: 28px;
+    color: #7df9ff;
+    font-weight: 700;
+    text-shadow: 0 0 10px #00d4ff;
+    margin-bottom: 10px;
+}
+
+/* CYBER CARD */
+.cyber-card {
+    background: rgba(0, 250, 200, 0.08);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #00ffc8;
+    box-shadow: 0 0 15px rgba(0, 255, 200, 0.4);
+    transition: transform .2s, box-shadow .3s;
+}
+
+.cyber-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(0, 255, 200, 0.7);
+}
+
+/* SMALL BADGE */
+.badge {
+    padding: 6px 12px;
+    background: rgba(0, 255, 170, 0.15);
+    border-radius: 10px;
+    border: 1px solid #00ffbf;
+    color: #00ffd4;
+    display: inline-block;
+    font-size: 14px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 5px #00ffe7;
+}
+
+/* TABLE STYLING */
+thead tr th {
+    color: #00ffe7 !important;
+}
+
+tbody tr:hover {
+    background-color: rgba(0, 255, 200, 0.05) !important;
+}
+
+/* SIDEBAR */
+.css-1d391kg, .css-1d391kg div {
+    background-color: #05070a !important;
+}
+
+.css-1n76uvr {
+    color: #00ffe7 !important;
+}
+
+/* Buttons */
+.stButton>button {
+    background-color: #00ffc8;
+    color: #000;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: .2s;
+}
+
+.stButton>button:hover {
+    background-color: #00ffa2;
+    transform: scale(1.05);
+}
+
