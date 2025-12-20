@@ -2,7 +2,6 @@ import os
 import io
 import time
 import pickle
-import random
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -63,35 +62,6 @@ def preprocess_cicids(df, feature_columns, scaler):
     X_df=pd.DataFrame(X, columns=df_proc.columns)
     return X_df, df_proc
 
-def preprocess_live_packet(packet_df, feature_columns, scaler, encoder=None):
-        df = packet_df.copy()
-
-        # Fill missing values
-        df = df.fillna(0)
-
-        # Detect categorical columns
-        categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
-
-        # Handle categorical features if encoder exists
-        if encoder is not None and len(categorical_cols) > 0:
-            encoded = encoder.transform(df[categorical_cols])
-            encoded_df = pd.DataFrame(encoded, columns=encoder.get_feature_names_out())
-            df = pd.concat([df.drop(columns=categorical_cols), encoded_df], axis=1)
-        elif len(categorical_cols)>0:
-            df=pd.get_dummies(df, columns=categorical_cols, drop_first=True)
-        # Align missing columns
-        for col in feature_columns:
-            if col not in df.columns:
-                df[col] = 0
-
-        df = df[feature_columns]
-        df= df.apply(pd.to_numeric, errors="coerce").fillna(0)
-
-        # Scale the numeric features
-        df = pd.DataFrame(scaler.transform(df), columns=feature_columns)
-
-        return df
-
 # -------------------- Models Map --------------------
 MODELS_MAP = {
     "NSL-KDD": {
@@ -135,248 +105,6 @@ def convert_to_binary(label):
             return "Normal"
         else:
             return "Intrusion"
-def add_alert(self, message, level="warning"):
-        """Add alert to session state with rate limiting"""
-        current_time = time.time()
-        
-        # Rate limiting: max 5 alerts per second
-        recent_alerts = [alert for alert in st.session_state.alerts 
-                        if current_time - alert['timestamp'].timestamp() < 1]
-        if len(recent_alerts) >= 5:
-            return
-        
-        alert = {
-            'timestamp': datetime.now(),
-            'message': message,
-            'level': level
-        }
-        st.session_state.alerts.append(alert)
-        
-        # Keep only last 20 alerts
-        if len(st.session_state.alerts) > 20:
-            st.session_state.alerts.pop(0)
-
-def simulate_live_intrusion_detection(self):
-        """FIXED: Simulate live intrusion detection with proper statistics"""
-        if not st.session_state.monitoring_active:
-            return
-        
-        current_time = time.time()
-        if current_time - st.session_state.last_update < st.session_state.update_interval:
-            return
-        
-        # Generate realistic number of packets per update
-        num_packets = random.randint(3, 8)
-        new_detections = []
-        
-        # Reset stats for this update cycle to avoid double counting
-        current_intrusions = 0
-        current_normal = 0
-        
-        for _ in range(num_packets):
-            # More realistic intrusion probability for live monitoring (8-12%)
-            is_actual_intrusion = random.random() < 0.10
-            
-            if st.session_state.selected_algorithm:
-                model_info = self.dataset_models[st.session_state.selected_dataset]["algorithms"][st.session_state.selected_algorithm]
-                model_accuracy = model_info["accuracy"] / 100
-                model_recall = model_info["recall"] / 100
-            else:
-                model_accuracy = 0.95
-                model_recall = 0.93
-            
-            if is_actual_intrusion:
-                # Real intrusion
-                intrusion_type = self.get_intrusion_type(st.session_state.selected_dataset)
-                signature = self.generate_intrusion_signature(intrusion_type)
-                
-                # Model detection based on recall
-                if random.random() < model_recall:
-                    # True Positive - Correctly detected intrusion
-                    prediction = "Intrusion"
-                    confidence = random.uniform(0.85, 0.99)
-                    risk = "High" if signature["severity"] in ["High", "Critical"] else "Medium"
-                    current_intrusions += 1
-                    
-                    # Add intrusion detail
-                    intrusion_detail = {
-                        'timestamp': datetime.now(),
-                        'type': intrusion_type,
-                        'source_ip': self.generate_suspicious_ip(),
-                        'dest_ip': self.generate_mock_ip(),
-                        'protocol': random.choice(['TCP', 'UDP']),
-                        'signature': signature["pattern"],
-                        'severity': signature["severity"],
-                        'confidence': confidence
-                    }
-                    st.session_state.intrusion_details.append(intrusion_detail)
-                    
-                    # Add alert
-                    alert_msg = f"🚨 {intrusion_type} detected from {intrusion_detail['source_ip']} - {signature['pattern']}"
-                    self.add_alert(alert_msg, "danger")
-                    
-                    # Update attack type statistics
-                    if intrusion_type in st.session_state.stats['attack_types']:
-                        st.session_state.stats['attack_types'][intrusion_type] += 1
-                    else:
-                        st.session_state.stats['attack_types'][intrusion_type] = 1
-                else:
-                    # False Negative - Missed intrusion
-                    prediction = "Normal"
-                    confidence = random.uniform(0.3, 0.6)
-                    risk = "Low"
-                    intrusion_type = "Normal"
-                    current_normal += 1
-            else:
-                # Normal traffic
-                # Model accuracy for normal traffic (specificity)
-                if random.random() < model_accuracy:
-                    # True Negative - Correctly identified normal traffic
-                    prediction = "Normal"
-                    confidence = random.uniform(0.7, 0.95)
-                    risk = random.choices(['Low', 'Medium'], weights=[85, 15])[0]
-                    intrusion_type = "Normal"
-                    current_normal += 1
-                else:
-                    # False Positive - Normal traffic flagged as intrusion
-                    prediction = "Intrusion"
-                    confidence = random.uniform(0.4, 0.7)
-                    risk = "Medium"
-                    intrusion_type = "False Positive"
-                    current_intrusions += 1
-            
-            # Create detection record
-            detection = {
-                'timestamp': datetime.now(),
-                'protocol': random.choice(['TCP', 'UDP', 'ICMP', 'HTTP', 'HTTPS']),
-                'source_ip': self.generate_suspicious_ip() if is_actual_intrusion else self.generate_mock_ip(),
-                'dest_ip': self.generate_mock_ip(),
-                'size': f"{random.randint(64, 1500)} B",
-                'prediction': prediction,
-                'confidence': f"{confidence:.1%}",
-                'risk': risk,
-                'intrusion_type': intrusion_type
-            }
-            
-            new_detections.append(detection)
-        
-        # Batch update history and stats
-        st.session_state.detection_history.extend(new_detections)
-        
-        # Update statistics
-        st.session_state.stats['total_packets'] += num_packets
-        st.session_state.stats['intrusions_detected'] += current_intrusions
-        st.session_state.stats['normal_traffic'] += current_normal
-        
-        # Update intrusion rate
-        if st.session_state.stats['total_packets'] > 0:
-            st.session_state.stats['intrusion_rate'] = (
-                st.session_state.stats['intrusions_detected'] / 
-                st.session_state.stats['total_packets'] * 100
-            )
-        
-        # Keep only last 100 records for performance
-        if len(st.session_state.detection_history) > 100:
-            st.session_state.detection_history = st.session_state.detection_history[-100:]
-        
-        # Keep only last 50 intrusion details
-        if len(st.session_state.intrusion_details) > 50:
-            st.session_state.intrusion_details = st.session_state.intrusion_details[-50:]
-        
-        st.session_state.last_update = current_time
-# def live_monitor(model, feature_columns, scaler, encoder=None):
-#         st.subheader("🔴 Live Network Monitoring")
-
-#         packet = {
-#         col: np.random.rand() * 100 if "flag" not in col else "S0"
-#         for col in feature_columns
-#         }
-
-#         packet_df = pd.DataFrame([packet])
-
-#         # Preprocess
-#         processed = preprocess_live_packet(packet_df, feature_columns, scaler, encoder)
-
-#         # Prediction
-#         prediction = model.predict(processed)[0]
-#         binary_label = convert_to_binary(prediction)
-
-#         # Store result
-#         st.session_state.live_results.append({
-#             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-#             "original_label": prediction,
-#             "binary_label": binary_label
-#         })
-
-#         df_live = pd.DataFrame(st.session_state.live_results)
-
-#         # ---------------- Dashboard ----------------
-#         st.write("### Latest Predictions")
-#         st.dataframe(df_live.tail(10), use_container_width=True)
-
-#         count_normal = (df_live["binary_label"] == "Normal").sum()
-#         count_intrusion = (df_live["binary_label"] == "Intrusion").sum()
-#         total = len(df_live)
-
-#         m1, m2, m3, m4 = st.columns(4)
-#         m1.metric("Total Packets", total)
-#         m2.metric("Normal", count_normal)
-#         m3.metric("Intrusions", count_intrusion)
-#         m4.metric("Intrusion Rate", f"{(count_intrusion/total)*100:.2f}%" if total else "0%")
-
-#         # Auto refresh every second
-#         time.sleep(1)
-#         st.experimental_rerun()
-
-        # placeholder = st.empty()
-        # live_results = []
-
-        # while True:
-        #     # ----------------------------------------------------
-        #     # Simulate live incoming packet (Replace with real data source)
-        #     # ----------------------------------------------------
-        #     packet = {
-        #         col: np.random.rand() * 100 if "flag" not in col else "S0"
-        #         for col in feature_columns
-        #     }
-        #     packet_df = pd.DataFrame([packet])
-
-        #     # ----------------------------------------------------
-        #     # Preprocess packet
-        #     # ----------------------------------------------------
-        #     processed = preprocess_live_packet(packet_df, feature_columns, scaler, encoder)
-
-        #     # ----------------------------------------------------
-        #     # Prediction
-        #     # ----------------------------------------------------
-        #     prediction = model.predict(processed)[0]
-        #     binary_label = convert_to_binary(prediction)
-
-        #     # Save result
-        #     live_results.append({
-        #         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-        #         "original_label": prediction,
-        #         "binary_label": binary_label
-        #     })
-
-        #     # ----------------------------------------------------
-        #     # Dashboard Output
-        #     # ----------------------------------------------------
-        #     df_live = pd.DataFrame(live_results)
-
-        #     with placeholder.container():
-        #         st.write("### Latest Predictions")
-        #         st.dataframe(df_live.tail(10))
-
-        #         # Count Normal / Intrusion
-        #         count_normal = sum(df_live["binary_label"] == "Normal")
-        #         count_intrusion = sum(df_live["binary_label"] == "Intrusion")
-
-        #         st.metric("Normal Traffic", count_normal)
-        #         st.metric("Intrusions Detected", count_intrusion)
-
-        #     # Slow down loop (Adjust based on traffic)
-        #     time.sleep(1)
 
 # -------------------- Models Metrics --------------------
 Models_Metrics={
@@ -465,88 +193,25 @@ st.sidebar.markdown(f"<div class='metric-value'>{metrics['accuracy']*100:.2f}%</
 st.sidebar.subheader("Precision:")
 st.sidebar.markdown(f"<div class='metric-value'>{metrics['precision']*100:.2f}%</div>", unsafe_allow_html=True)
 
-try:
-    if dataset_choice == "NSL-KDD":
+if dataset_choice == "NSL-KDD":
         model_path = MODELS_MAP["NSL-KDD"]["Models"][algorithm]
         scaler_path = MODELS_MAP["NSL-KDD"]["Scaler"]
         features_path = MODELS_MAP["NSL-KDD"]["Feature_Columns"]
-    else:
+else:
         model_path = MODELS_MAP["CICIDS-2017"][class_type][algorithm]
         scaler_path = MODELS_MAP["CICIDS-2017"]["Scaler"]
         features_path = MODELS_MAP["CICIDS-2017"]["Feature_Columns"]
         label_encoder_path = MODELS_MAP["CICIDS-2017"].get("Label_Encoder")
-except Exception as e:
-    st.error(f"Configuration error: {e}")
-    st.stop()
 
-# -------------------- Live Monitoring --------------------
-# if "monitoring" not in st.session_state:
-#     st.session_state.monitoring = False
-
-# if "live_results" not in st.session_state:
-#     st.session_state.live_results = []
-
-# if mode == "Live Monitoring":
-#     st.subheader("Live Network Monitoring")
-
-#     col1, col2, col3= st.columns(3)
-#     with col1:
-#         if st.button("Start Monitoring"):
-#             st.session_state.monitoring = True
-#             st.success("Live monitoring started...")
-
-#     with col2:
-#         if st.button("Stop Monitoring"):
-#             st.session_state.monitoring = False    
-#             st.success("Live Monitoring Stoped.")
-
-#     with col3:
-#         if st.button("Clear Data"):
-#             st.session_state.live_results = []
-#             st.success("Data cleared.")
-
-# @st.cache_resource
-# def load_live_objects():
-#     model=load_model(model_path)
-#     scaler=load_pickle(scaler_path)
-#     feature_columns=load_pickle(features_path)
-#     encoder=try_load_pickle(label_encoder_path )if dataset_choice=="CICIDS-2017" else None
-#     return model, feature_columns, scaler,encoder
-
-# if st.session_state.monitoring:
-#     model, scaler, feature_columns, encoder = load_live_objects()
-#     live_monitor(model, feature_columns, scaler, encoder)
-#     st.autorefresh(interval=1000, key="live_refresh")
-
-   
-
-        
-       
-        
-
-    # m1, m2, m3, m4=st.columns(4)
-    # with m1:
-    #         st.metric("Total Packets", "0")
-    # with m2:
-    #         st.metric("Normal", "0")
-    # with m3:
-    #         st.metric("Intrusions", "0")
-    # with m4:
-    #         st.metric("Intrusion Rate", "0%")
-        
-    # st.subheader("Recent Alerts")
-    # st.info("No alerts to display.")
-    # st.stop()   
-
+ 
 # -------------------- File Analysis --------------------
-else:
-    st.subheader("File Analysis")
+st.subheader("File Analysis")
 
-    uploaded_file = st.file_uploader("Upload CSV (files)", type=["csv"])
-    if uploaded_file is None:
+uploaded_file = st.file_uploader("Upload CSV (files)", type=["csv"])
+if uploaded_file is None:
         st.stop()
 
-    def load_uploaded_csv(uploaded_file):
+def load_uploaded_csv(uploaded_file):
         uploaded_file.seek(0)
         try:
             df=pd.read_csv(uploaded_file)
@@ -564,31 +229,31 @@ else:
                 st.stop()
         return df
 
-    df = load_uploaded_csv(uploaded_file)
-    st.write("### Uploaded Data Review")
-    st.dataframe(df.head())
+df = load_uploaded_csv(uploaded_file)
+st.write("### Uploaded Data Review")
+st.dataframe(df.head())
 
-    try:
+try:
         model = load_pickle(model_path)
-    except FileNotFoundError as e:
+except FileNotFoundError as e:
         st.error(str(e))
         st.stop()
 
-    scaler = try_load_pickle(scaler_path)
-    if scaler is None:
+scaler = try_load_pickle(scaler_path)
+if scaler is None:
         st.error(f"Scaler not found at `{scaler_path}`.")
         st.stop()
 
-    feature_columns = try_load_pickle(features_path)
-    if feature_columns is None:
+feature_columns = try_load_pickle(features_path)
+if feature_columns is None:
         st.error(f"Feature columns not found at `{features_path}`.")
         st.stop()
 
-    label_encoder = None
-    if dataset_choice == "CICIDS-2017":
+label_encoder = None
+if dataset_choice == "CICIDS-2017":
         label_encoder = try_load_pickle(label_encoder_path)
 
-    if st.button("Evaluate"):
+if st.button("Evaluate"):
         t0 = datetime.now()
         st.info("Preprocessing and predicting...")
         try:
