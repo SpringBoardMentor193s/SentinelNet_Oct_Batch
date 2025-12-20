@@ -2,13 +2,15 @@ import os
 import io
 import time
 import pickle
+import random
 import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 from datetime import datetime
+import plotly.graph_objects as go
 from sklearn.preprocessing import label_binarize
-from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, roc_curve, auc
+from sklearn.metrics import confusion_matrix, roc_curve, auc
 
 # -------------------- Load Pickles --------------------
 def load_pickle(path):
@@ -25,22 +27,9 @@ def try_load_pickle(path):
     except FileNotFoundError:
         return None
 
-# ------------------------------------------------------------
-    # 1. LOAD MODEL
-    # ------------------------------------------------------------
 def load_model(model_path):
     with open(model_path, "rb") as f:
         return pickle.load(f)
-
-    # ------------------------------------------------------------
-    # 2. PREPROCESS LIVE PACKET
-    # ------------------------------------------------------------
-
-
-    # ------------------------------------------------------------
-    # 3. MAP LABELS → NORMAL / INTRUSION
-    # ------------------------------------------------------------
-
 
 # -------------------- Preprocessing --------------------
 def preprocess_nsl(df, feature_columns, scaler, names):
@@ -132,9 +121,9 @@ MODELS_MAP = {
             "XGBoost": "Models/CICIDS-2017/Multi_Class/XGBoost.pkl",
             "LightGBM": "Models/CICIDS-2017/Multi_Class/LightGBM.pkl"
         },
-        "Scaler": "Models/CICIDS-2017/Scaler.pkl",
+        "Scaler": "Models/CICIDS-2017/Multi_Class/Scaler.pkl",
         "Feature_Columns": "Models/CICIDS-2017/Feature_Columns.pkl",
-        "Label_Encoder": "Models/CICIDS-2017/Label_Encoder.pkl"
+        "Label_Encoder": "Models/CICIDS-2017/Multi_Class/Label_Encoder.pkl"
     }
 }
 
@@ -142,63 +131,252 @@ def convert_to_binary(label):
         label = str(label).upper()
         if label == "BENIGN":
             return "Normal"
-        elif label == "NORMAL":   # NSL-KDD
+        elif label == "NORMAL":  
             return "Normal"
         else:
             return "Intrusion"
+def add_alert(self, message, level="warning"):
+        """Add alert to session state with rate limiting"""
+        current_time = time.time()
+        
+        # Rate limiting: max 5 alerts per second
+        recent_alerts = [alert for alert in st.session_state.alerts 
+                        if current_time - alert['timestamp'].timestamp() < 1]
+        if len(recent_alerts) >= 5:
+            return
+        
+        alert = {
+            'timestamp': datetime.now(),
+            'message': message,
+            'level': level
+        }
+        st.session_state.alerts.append(alert)
+        
+        # Keep only last 20 alerts
+        if len(st.session_state.alerts) > 20:
+            st.session_state.alerts.pop(0)
 
-def live_monitor(model, feature_columns, scaler, encoder=None):
-        st.subheader("🔴 Live Network Monitoring")
-
-        placeholder = st.empty()
-        live_results = []
-
-        while True:
-            # ----------------------------------------------------
-            # Simulate live incoming packet (Replace with real data source)
-            # ----------------------------------------------------
-            packet = {
-                col: np.random.rand() * 100 if "flag" not in col else "S0"
-                for col in feature_columns
+def simulate_live_intrusion_detection(self):
+        """FIXED: Simulate live intrusion detection with proper statistics"""
+        if not st.session_state.monitoring_active:
+            return
+        
+        current_time = time.time()
+        if current_time - st.session_state.last_update < st.session_state.update_interval:
+            return
+        
+        # Generate realistic number of packets per update
+        num_packets = random.randint(3, 8)
+        new_detections = []
+        
+        # Reset stats for this update cycle to avoid double counting
+        current_intrusions = 0
+        current_normal = 0
+        
+        for _ in range(num_packets):
+            # More realistic intrusion probability for live monitoring (8-12%)
+            is_actual_intrusion = random.random() < 0.10
+            
+            if st.session_state.selected_algorithm:
+                model_info = self.dataset_models[st.session_state.selected_dataset]["algorithms"][st.session_state.selected_algorithm]
+                model_accuracy = model_info["accuracy"] / 100
+                model_recall = model_info["recall"] / 100
+            else:
+                model_accuracy = 0.95
+                model_recall = 0.93
+            
+            if is_actual_intrusion:
+                # Real intrusion
+                intrusion_type = self.get_intrusion_type(st.session_state.selected_dataset)
+                signature = self.generate_intrusion_signature(intrusion_type)
+                
+                # Model detection based on recall
+                if random.random() < model_recall:
+                    # True Positive - Correctly detected intrusion
+                    prediction = "Intrusion"
+                    confidence = random.uniform(0.85, 0.99)
+                    risk = "High" if signature["severity"] in ["High", "Critical"] else "Medium"
+                    current_intrusions += 1
+                    
+                    # Add intrusion detail
+                    intrusion_detail = {
+                        'timestamp': datetime.now(),
+                        'type': intrusion_type,
+                        'source_ip': self.generate_suspicious_ip(),
+                        'dest_ip': self.generate_mock_ip(),
+                        'protocol': random.choice(['TCP', 'UDP']),
+                        'signature': signature["pattern"],
+                        'severity': signature["severity"],
+                        'confidence': confidence
+                    }
+                    st.session_state.intrusion_details.append(intrusion_detail)
+                    
+                    # Add alert
+                    alert_msg = f"🚨 {intrusion_type} detected from {intrusion_detail['source_ip']} - {signature['pattern']}"
+                    self.add_alert(alert_msg, "danger")
+                    
+                    # Update attack type statistics
+                    if intrusion_type in st.session_state.stats['attack_types']:
+                        st.session_state.stats['attack_types'][intrusion_type] += 1
+                    else:
+                        st.session_state.stats['attack_types'][intrusion_type] = 1
+                else:
+                    # False Negative - Missed intrusion
+                    prediction = "Normal"
+                    confidence = random.uniform(0.3, 0.6)
+                    risk = "Low"
+                    intrusion_type = "Normal"
+                    current_normal += 1
+            else:
+                # Normal traffic
+                # Model accuracy for normal traffic (specificity)
+                if random.random() < model_accuracy:
+                    # True Negative - Correctly identified normal traffic
+                    prediction = "Normal"
+                    confidence = random.uniform(0.7, 0.95)
+                    risk = random.choices(['Low', 'Medium'], weights=[85, 15])[0]
+                    intrusion_type = "Normal"
+                    current_normal += 1
+                else:
+                    # False Positive - Normal traffic flagged as intrusion
+                    prediction = "Intrusion"
+                    confidence = random.uniform(0.4, 0.7)
+                    risk = "Medium"
+                    intrusion_type = "False Positive"
+                    current_intrusions += 1
+            
+            # Create detection record
+            detection = {
+                'timestamp': datetime.now(),
+                'protocol': random.choice(['TCP', 'UDP', 'ICMP', 'HTTP', 'HTTPS']),
+                'source_ip': self.generate_suspicious_ip() if is_actual_intrusion else self.generate_mock_ip(),
+                'dest_ip': self.generate_mock_ip(),
+                'size': f"{random.randint(64, 1500)} B",
+                'prediction': prediction,
+                'confidence': f"{confidence:.1%}",
+                'risk': risk,
+                'intrusion_type': intrusion_type
             }
-            packet_df = pd.DataFrame([packet])
+            
+            new_detections.append(detection)
+        
+        # Batch update history and stats
+        st.session_state.detection_history.extend(new_detections)
+        
+        # Update statistics
+        st.session_state.stats['total_packets'] += num_packets
+        st.session_state.stats['intrusions_detected'] += current_intrusions
+        st.session_state.stats['normal_traffic'] += current_normal
+        
+        # Update intrusion rate
+        if st.session_state.stats['total_packets'] > 0:
+            st.session_state.stats['intrusion_rate'] = (
+                st.session_state.stats['intrusions_detected'] / 
+                st.session_state.stats['total_packets'] * 100
+            )
+        
+        # Keep only last 100 records for performance
+        if len(st.session_state.detection_history) > 100:
+            st.session_state.detection_history = st.session_state.detection_history[-100:]
+        
+        # Keep only last 50 intrusion details
+        if len(st.session_state.intrusion_details) > 50:
+            st.session_state.intrusion_details = st.session_state.intrusion_details[-50:]
+        
+        st.session_state.last_update = current_time
+# def live_monitor(model, feature_columns, scaler, encoder=None):
+#         st.subheader("🔴 Live Network Monitoring")
 
-            # ----------------------------------------------------
-            # Preprocess packet
-            # ----------------------------------------------------
-            processed = preprocess_live_packet(packet_df, feature_columns, scaler, encoder)
+#         packet = {
+#         col: np.random.rand() * 100 if "flag" not in col else "S0"
+#         for col in feature_columns
+#         }
 
-            # ----------------------------------------------------
-            # Prediction
-            # ----------------------------------------------------
-            prediction = model.predict(processed)[0]
-            binary_label = convert_to_binary(prediction)
+#         packet_df = pd.DataFrame([packet])
 
-            # Save result
-            live_results.append({
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "original_label": prediction,
-                "binary_label": binary_label
-            })
+#         # Preprocess
+#         processed = preprocess_live_packet(packet_df, feature_columns, scaler, encoder)
 
-            # ----------------------------------------------------
-            # Dashboard Output
-            # ----------------------------------------------------
-            df_live = pd.DataFrame(live_results)
+#         # Prediction
+#         prediction = model.predict(processed)[0]
+#         binary_label = convert_to_binary(prediction)
 
-            with placeholder.container():
-                st.write("### Latest Predictions")
-                st.dataframe(df_live.tail(10))
+#         # Store result
+#         st.session_state.live_results.append({
+#             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+#             "original_label": prediction,
+#             "binary_label": binary_label
+#         })
 
-                # Count Normal / Intrusion
-                count_normal = sum(df_live["binary_label"] == "Normal")
-                count_intrusion = sum(df_live["binary_label"] == "Intrusion")
+#         df_live = pd.DataFrame(st.session_state.live_results)
 
-                st.metric("Normal Traffic", count_normal)
-                st.metric("Intrusions Detected", count_intrusion)
+#         # ---------------- Dashboard ----------------
+#         st.write("### Latest Predictions")
+#         st.dataframe(df_live.tail(10), use_container_width=True)
 
-            # Slow down loop (Adjust based on traffic)
-            time.sleep(1)
+#         count_normal = (df_live["binary_label"] == "Normal").sum()
+#         count_intrusion = (df_live["binary_label"] == "Intrusion").sum()
+#         total = len(df_live)
+
+#         m1, m2, m3, m4 = st.columns(4)
+#         m1.metric("Total Packets", total)
+#         m2.metric("Normal", count_normal)
+#         m3.metric("Intrusions", count_intrusion)
+#         m4.metric("Intrusion Rate", f"{(count_intrusion/total)*100:.2f}%" if total else "0%")
+
+#         # Auto refresh every second
+#         time.sleep(1)
+#         st.experimental_rerun()
+
+        # placeholder = st.empty()
+        # live_results = []
+
+        # while True:
+        #     # ----------------------------------------------------
+        #     # Simulate live incoming packet (Replace with real data source)
+        #     # ----------------------------------------------------
+        #     packet = {
+        #         col: np.random.rand() * 100 if "flag" not in col else "S0"
+        #         for col in feature_columns
+        #     }
+        #     packet_df = pd.DataFrame([packet])
+
+        #     # ----------------------------------------------------
+        #     # Preprocess packet
+        #     # ----------------------------------------------------
+        #     processed = preprocess_live_packet(packet_df, feature_columns, scaler, encoder)
+
+        #     # ----------------------------------------------------
+        #     # Prediction
+        #     # ----------------------------------------------------
+        #     prediction = model.predict(processed)[0]
+        #     binary_label = convert_to_binary(prediction)
+
+        #     # Save result
+        #     live_results.append({
+        #         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        #         "original_label": prediction,
+        #         "binary_label": binary_label
+        #     })
+
+        #     # ----------------------------------------------------
+        #     # Dashboard Output
+        #     # ----------------------------------------------------
+        #     df_live = pd.DataFrame(live_results)
+
+        #     with placeholder.container():
+        #         st.write("### Latest Predictions")
+        #         st.dataframe(df_live.tail(10))
+
+        #         # Count Normal / Intrusion
+        #         count_normal = sum(df_live["binary_label"] == "Normal")
+        #         count_intrusion = sum(df_live["binary_label"] == "Intrusion")
+
+        #         st.metric("Normal Traffic", count_normal)
+        #         st.metric("Intrusions Detected", count_intrusion)
+
+        #     # Slow down loop (Adjust based on traffic)
+        #     time.sleep(1)
 
 # -------------------- Models Metrics --------------------
 Models_Metrics={
@@ -302,52 +480,63 @@ except Exception as e:
     st.stop()
 
 # -------------------- Live Monitoring --------------------
-if mode == "Live Monitoring":
-    st.subheader("Live Network Monitoring")
+# if "monitoring" not in st.session_state:
+#     st.session_state.monitoring = False
 
-    col1, col2, col3= st.columns(3)
-    with col1:
-        start=st.button("Start Monitoring")
-    with col2:
-        stop=st.button("Stop Monitoring")
-    with col3:
-        clear=st.button("Clear Data") 
+# if "live_results" not in st.session_state:
+#     st.session_state.live_results = []
 
-    if start:
-        st.success("Live monitoring started...")
-        model=load_model(model_path)
-        scaler=load_pickle(scaler_path)
-        feature_columns=load_pickle(features_path)
-        encoder=try_load_pickle(label_encoder_path )if dataset_choice=="CICIDS-2017" else None
-        live_monitor(model, feature_columns, scaler,encoder)
-    if stop:
-            st.success("Live Monitoring Stoped.")
-    if clear:
-            st.success("Data cleared.")
+# if mode == "Live Monitoring":
+#     st.subheader("Live Network Monitoring")
 
-    m1, m2, m3, m4=st.columns(4)
-    with m1:
-            st.metric("Total Packets", "0")
-    with m2:
-            st.metric("Normal", "0")
-    with m3:
-            st.metric("Intrusions", "0")
-    with m4:
-            st.metric("Intrusion Rate", "0%")
+#     col1, col2, col3= st.columns(3)
+#     with col1:
+#         if st.button("Start Monitoring"):
+#             st.session_state.monitoring = True
+#             st.success("Live monitoring started...")
+
+#     with col2:
+#         if st.button("Stop Monitoring"):
+#             st.session_state.monitoring = False    
+#             st.success("Live Monitoring Stoped.")
+
+#     with col3:
+#         if st.button("Clear Data"):
+#             st.session_state.live_results = []
+#             st.success("Data cleared.")
+
+# @st.cache_resource
+# def load_live_objects():
+#     model=load_model(model_path)
+#     scaler=load_pickle(scaler_path)
+#     feature_columns=load_pickle(features_path)
+#     encoder=try_load_pickle(label_encoder_path )if dataset_choice=="CICIDS-2017" else None
+#     return model, feature_columns, scaler,encoder
+
+# if st.session_state.monitoring:
+#     model, scaler, feature_columns, encoder = load_live_objects()
+#     live_monitor(model, feature_columns, scaler, encoder)
+#     st.autorefresh(interval=1000, key="live_refresh")
+
+   
+
         
-    st.subheader("Recent Alerts")
-    st.info("No alerts to display.")
-    st.stop()
-    
+       
+        
 
-    
-
-    # ------------------------------------------------------------
-    # 4. LIVE MONITORING LOOP
-    # ------------------------------------------------------------
-    
-
-    
+    # m1, m2, m3, m4=st.columns(4)
+    # with m1:
+    #         st.metric("Total Packets", "0")
+    # with m2:
+    #         st.metric("Normal", "0")
+    # with m3:
+    #         st.metric("Intrusions", "0")
+    # with m4:
+    #         st.metric("Intrusion Rate", "0%")
+        
+    # st.subheader("Recent Alerts")
+    # st.info("No alerts to display.")
+    # st.stop()   
 
 # -------------------- File Analysis --------------------
 else:
@@ -407,7 +596,12 @@ else:
                 X, aligned_df = preprocess_nsl(df, feature_columns, scaler, names=NSL_KDD_COLUMN_NAMES)
             else:
                 X, aligned_df = preprocess_cicids(df, feature_columns, scaler)
+
+            if X.shape[0] == 0:
+                 st.error("Error: Preprocessing resulted in 0 samples. Check your feature columns and input data.")
+                 st.stop()
             preds = model.predict(X)
+
             if label_encoder is not None:
                 try:
                     preds_decoded = label_encoder.inverse_transform(preds)
@@ -415,117 +609,351 @@ else:
                     preds_decoded = preds.astype(str)
             else:
                 preds_decoded = preds.astype(str)
-                preds_decoded = ["Normal" if p == 0 else "Intrusion" for p in preds]
+
+            if dataset_choice == "CICIDS-2017" and class_type == "Multiclass":
+                preds_decoded = [
+                    "Benign" if str(p).strip().lower() == "benign"
+                    else "DoS" if str(p).strip() == "DoS"
+                    else "DDoS" if str(p).strip() == "DDoS"
+                    else "Intrusion"
+                    for p in preds_decoded
+                ]
+
+            elif dataset_choice == "CICIDS-2017" and class_type == "Binary":
+                preds_decoded = ["Normal" if str(p).lower() in ["0", "benign", "BENIGN","normal"] else "Intrusion" for p in preds_decoded]
+
+            elif dataset_choice=="NSL-KDD":
+                preds_decoded = ["Normal" if str(p).lower() in ["0", "normal"] else "Intrusion" for p in preds_decoded]
+
             results_df = df.reset_index(drop=True).copy()
             results_df["Prediction"] = preds_decoded
             
             st.success("Prediction finished.")
             st.write("### Results")
             st.dataframe(results_df.head())
-            
-
+          
             st.subheader("Dataset Traffic Overview")
             col1, col2 = st.columns(2)
 
             with col1:
                 st.write("Traffic Distribution:")
-                traffic_counts = results_df["Prediction"].value_counts()
-                pie_color={
-                    "Normal": "Green",
-                    "Intrusion":"Red"
-                }
-                fig_traffic = px.pie(
-                    names=traffic_counts.index,
-                    values=traffic_counts.values,  
-                    hole=0.3
-                )
-                fig_traffic.update_traces(
-                    marker=dict(
-                        colors=[pie_color[label_encoder]for label_encoder in traffic_counts.index]
-                    )
-                )
-                fig_traffic.update_layout(
-                    height=250,
-                    width=250,
-                    margin=dict(l=0,r=0,t=40,b=0)
-                )
-                st.plotly_chart(fig_traffic, config={"responsive": True},width=500)
-
-            with col2:
-                st.write("Protocol Distribution:")
-                protocol_col = None
-                possible_cols = ["protocol_type", "protocol", "Protocol", "Protocol_Type"]
-
-                for c in possible_cols:
-                    if c in df.columns:
-                        protocol_col = c
-                        break
-
-                if protocol_col is None:
-                    st.error("❌ No protocol column found in uploaded dataset.")
-                else:
-                    protocol_counts = df[protocol_col].value_counts().reset_index()
-                    protocol_counts.columns=["Protocol","Count"]
-                    protocol_color={
-                        "tcp": "Blue",
-                        "udp": "Yellow",
-                        "icmp": "Violet"
+                if dataset_choice == "NSL-KDD":
+                    traffic_counts = results_df["Prediction"].value_counts()
+                    pie_color={
+                        "Normal": "Green",
+                        "Intrusion":"Red"
                     }
-                    fig_protocol = px.bar(
-                        protocol_counts,
-                        x="Protocol",
-                        y="Count",   
+                    fig_traffic = px.pie(
+                        names=traffic_counts.index,
+                        values=traffic_counts.values,  
+                        hole=0.3
                     )
-                    fig_protocol.update_layout(
-                        height=300,  
-                        uniformtext_minsize=12,
-                        uniformtext_mode="hide",
-                        margin=dict(t=20,b=20)
+                    fig_traffic.update_traces(
+                        marker=dict(
+                        colors=[pie_color[label_encoder]for label_encoder in traffic_counts.index]
+                        )
                     )
-                    fig_protocol.update_traces(
-                        marker_color=[
-                            protocol_color.get(proto, "#1f77b4")
-                            for proto in protocol_counts["Protocol"]
-                        ],
-                    textposition="outside" 
+                    fig_traffic.update_layout(
+                        height=250,
+                        width=250,
+                        margin=dict(l=0,r=0,t=40,b=0)
                     )
-                    st.plotly_chart(fig_protocol, config={"responsive": True}, width=500)
-                    
-            st.subheader("Classification Summary")
-            c1, c2 = st.columns(2)
-            with c1:
-                st.write("Normal vs Intrusion Distribution:")
+                    st.plotly_chart(fig_traffic, config={"responsive": True},width=500)                                
 
-                bar_counts = results_df["Prediction"].value_counts().reset_index()
-                bar_counts.columns = ["Label", "Count"]
-                colors = {
-                    "Normal": "Teal",      
-                    "Intrusion": "Red"
-                }   
-                fig_bar = px.bar(
-                            bar_counts,
+                elif dataset_choice=="CICIDS-2017" and class_type=="Binary":
+                        traffic_counts = results_df["Prediction"].value_counts()
+                        pie_color={
+                            "Normal": "Green",
+                            "Intrusion":"Red"
+                        }
+                        fig_traffic = px.pie(
+                            names=traffic_counts.index,
+                            values=traffic_counts.values,  
+                            hole=0.3
+                        )
+                        fig_traffic.update_traces(
+                            marker=dict(
+                            colors=[pie_color[label_encoder]for label_encoder in traffic_counts.index]
+                            )
+                        )
+                        fig_traffic.update_layout(
+                            height=250,
+                            width=250,
+                            margin=dict(l=0,r=0,t=40,b=0)
+                        )
+                        st.plotly_chart(fig_traffic, config={"responsive": True},width=500)
+
+                else:
+                    attack_classes=["Benign","DoS","DDoS"]
+                    traffic_counts = results_df["Prediction"].value_counts().reindex(attack_classes, fill_value=0)
+                    pie_color={
+                        "Benign":"Teal",
+                        "DoS": "Blue",
+                        "DDoS":"Violet"
+                    }
+                    fig_traffic = px.pie(
+                        names=traffic_counts.index,
+                        values=traffic_counts.values,  
+                        hole=0.3,
+                        color=traffic_counts.index,
+                        color_discrete_map=pie_color
+                    )
+                    fig_traffic.update_traces(
+                        sort=False
+                    )
+                    fig_traffic.update_layout(
+                        height=250,
+                        width=250,
+                        showlegend=True,
+                        margin=dict(l=0,r=0,t=40,b=0)
+                    )
+                    st.plotly_chart(fig_traffic, config={"responsive": True},width=500)
+     
+            with col2:
+                if dataset_choice == 'NSL-KDD':
+                    st.write("Protocol Distribution:")
+                    protocol_col = None
+                    possible_cols = ["protocol_type", "protocol", "Protocol", "Protocol_Type"]
+
+                    for c in possible_cols:
+                        if c in df.columns:
+                            protocol_col = c
+                            break
+
+                    if protocol_col is None:
+                        st.error("❌ No protocol column found in uploaded dataset.")
+                    else:
+                        protocol_counts = df[protocol_col].value_counts().reset_index()
+                        protocol_counts.columns=["Protocol","Count"]
+                        protocol_color={
+                            "tcp": "Blue",
+                            "udp": "Yellow",
+                            "icmp": "Violet"
+                        }
+                        fig_protocol = px.bar(
+                            protocol_counts,
+                            x="Protocol",
+                            y="Count",   
+                        )
+                        fig_protocol.update_layout(
+                            height=300,  
+                            uniformtext_minsize=12,
+                            uniformtext_mode="hide",
+                            margin=dict(t=20,b=20)
+                        )
+                        fig_protocol.update_traces(
+                            marker_color=[
+                                protocol_color.get(proto, "#1f77b4")
+                                for proto in protocol_counts["Protocol"]
+                            ],
+                        textposition="outside" 
+                        )
+                        st.plotly_chart(fig_protocol, config={"responsive": True}, width=500)
+
+                elif dataset_choice=="CICIDS-2017" and class_type=="Binary":
+                    st.write("Label Distribution:")
+                    label_col = None
+
+                    for c in ["Label", "label"]:
+                        if c in df.columns:
+                            label_col = c
+                            break
+
+                    if label_col is None:
+                        st.error("❌ No Label column found in CICIDS dataset.")
+                    else:
+                        df_labels = df[[label_col]].copy()
+                        def map_cicids_labels(label):
+                            label = str(label).upper()
+                            if label == "BENIGN":
+                                return "Benign"
+                            elif "DDOS" in label:
+                                return "DDoS"
+                            elif "DOS" in label:
+                                return "DoS"
+                            else:
+                                return None 
+
+                        df_labels["Mapped_Label"] = df_labels[label_col].apply(map_cicids_labels)
+                        df_labels = df_labels[df_labels["Mapped_Label"].notna()]
+
+                        label_counts = df_labels["Mapped_Label"].value_counts().reset_index()
+                        label_counts.columns = ["Label", "Count"]
+                        color_map = {
+                            "Benign":"Blue",
+                            "DoS": "Yellow",
+                            "DDoS": "Violet"
+                        }
+                        fig = px.bar(
+                            label_counts,
                             x="Label",
                             y="Count",
                             color="Label",
-                            color_discrete_map=colors
+                            color_discrete_map=color_map
                         )
-                fig_bar.update_layout(
-                            height=350,
-                            margin=dict(l=10, r=10, t=40, b=10)
+                        fig.update_traces(
+                            textposition="outside"
+                            )
+                        fig.update_layout(
+                            showlegend=False,
+                            height=300,
+                            uniformtext_minsize=12,
+                            uniformtext_mode="hide",
+                            margin=dict(t=20, b=20)
                         )
-                st.plotly_chart(fig_bar, width=500, config={"responsive": True})
+                        st.plotly_chart(fig, use_container_width=True)
 
+                else:
+                    st.write("Label Distribution:")
+                    label_col = None
+
+                    for c in ["Label", "label"]:
+                        if c in df.columns:
+                            label_col = c
+                            break
+
+                    if label_col is None:
+                        st.error("❌ No Label column found in CICIDS dataset.")
+                    else:
+                        df_labels = df[[label_col]].copy()
+                        def map_cicids_labels(label):
+                            label = str(label).upper()
+                            if label == "BENIGN":
+                                return "Benign"
+                            elif "DDOS" in label:
+                                return "DDoS"
+                            elif "DOS" in label:
+                                return "DoS"
+                            else:
+                                return "Intrusion"  
+
+                        df_labels["Mapped_Label"] = df_labels[label_col].apply(map_cicids_labels)
+                        df_labels = df_labels[df_labels["Mapped_Label"].notna()]
+
+                        label_counts = df_labels["Mapped_Label"].value_counts().reset_index()
+                        label_counts.columns = ["Label", "Count"]
+                        color_map = {
+                            "Benign": "Blue",
+                            "DoS": "Yellow",
+                            "DDoS": "Violet",
+                            "Intrusion": "Red"
+                        }
+                        fig = px.bar(
+                            label_counts,
+                            x="Label",
+                            y="Count",
+                            color="Label",
+                            color_discrete_map=color_map
+                        )
+                        fig.update_traces(
+                            textposition="outside"
+                            )
+                        fig.update_layout(
+                            showlegend=False,
+                            height=300,
+                            uniformtext_minsize=12,
+                            uniformtext_mode="hide",
+                            margin=dict(t=20, b=20,l=0,r=0)
+                        )
+                        st.plotly_chart(fig,width=500, config={"responsive":True})
+        
+            st.subheader("Classification Summary")
+            c1, c2 = st.columns(2)
+            with c1:
+                if dataset_choice=="NSL-KDD" or dataset_choice=="CICIDS-2017" and class_type=="Binary":
+                    st.write("Normal vs Intrusion Distribution:")
+                    bar_counts = results_df["Prediction"].value_counts().reset_index()
+                    bar_counts.columns = ["Label", "Count"]
+                    colors = {
+                        "Normal": "Teal",      
+                        "Intrusion": "Red"
+                    }   
+                    fig_bar = px.bar(
+                        bar_counts,
+                        x="Label",
+                        y="Count",
+                        color="Label",
+                        color_discrete_map=colors
+                    )
+                    fig_bar.update_layout(
+                        height=350,
+                        margin=dict(l=10, r=10, t=40, b=10),
+                        showlegend=False
+                    )
+                    st.plotly_chart(fig_bar, width=500, config={"responsive": True})
+
+                else:
+                    st.write("Multiclass Distribution:")
+                    classes = ["Benign", "DoS", "DDoS", "Intrusion"]
+                    def normalize_label(label):
+                        label = str(label).lower()
+                        if label == "benign":
+                            return "Benign"
+                        elif label == "dos":
+                            return "DoS"
+                        elif label == "ddos":
+                            return "DDoS"
+                        else:
+                            return "Intrusion"
+                    results_df["Label"] = results_df["Label"].apply(normalize_label)
+                    results_df["Prediction"] = results_df["Prediction"].apply(normalize_label)
+                    results_df=results_df.dropna(subset=["Label","Prediction"])
+                    actual_counts = results_df["Label"].value_counts().reindex(classes, fill_value=0)
+                    pred_counts = results_df["Prediction"].value_counts().reindex(classes, fill_value=0)
+
+                    bar_df = pd.DataFrame({
+                        "Class": classes,
+                        "Actual": actual_counts.values,
+                        "Predicted": pred_counts.values
+                    })
+                    bar_long = bar_df.melt(
+                        id_vars="Class",
+                        value_vars=["Actual", "Predicted"],
+                        var_name="Type",
+                        value_name="Count"
+                    )
+                    fig=go.Figure()
+                    fig.add_trace(
+                        go.Bar(
+                            x=classes,
+                            y=actual_counts.values,
+                            name="Actual",
+                            marker_color="Red"
+                        )
+                    )
+                    fig.add_trace(
+                        go.Bar(
+                            x=classes,
+                            y=pred_counts.values,
+                            name="Predicted",
+                            marker_color="Blue"
+                        )
+                    )
+                    fig.update_layout(
+                        barmode="group",
+                        height=350,
+                        xaxis_title="Traffic Class",
+                        yaxis_title="Count",
+                        showlegend=False,
+                        margin=dict(l=10, r=10, t=40, b=10)
+                    )
+                    st.plotly_chart(fig, width=500,config={"Responsive":True})
+                    
             with c2:
-                    st.write("Confusion Matrix:")
+                st.write("Confusion Matrix:")
+                if dataset_choice=="NSL-KDD":
                     possible_actual_cols =["Label", "label", "Class", "class","Actual","actual"]
                     actual_col=None
+
                     for col in possible_actual_cols:
                         if col in df.columns:
                             actual_col=col
                             break
+
                     if actual_col is None:
                         st.error("Error: No actual label column found in uploaded dataset.")
                         st.stop()
+
                     y_true=df[actual_col].astype(str)
                     mapping={
                         0:"Normal",
@@ -540,6 +968,7 @@ else:
                     labels=["Normal","Intrusion"]
                     y_true=y_true.apply(lambda x: x if x in labels else "Intrusion")
                     y_pred=y_pred.apply(lambda x: x if x in labels else "Intrusion")
+
                     cm = confusion_matrix(y_true, y_pred, labels=labels)
                     cm_df = pd.DataFrame(cm, index=labels, columns=labels)
 
@@ -549,45 +978,211 @@ else:
                         color_continuous_scale="Blues",
                         labels=dict(x="Predicted", y="Actual", color="Count")
                     )
-
                     fig_cm.update_layout(
                         height=350,
                         margin=dict(l=10, r=10, t=40, b=10)
                     )
-
                     st.plotly_chart(fig_cm, width=500, config={"responsive": True})
-            if hasattr(model, "predict_proba"):
-                y_prob = model.predict_proba(X)[:, 1]  
-            else:
-                st.warning("Model does not support probability prediction. ROC curve cannot be computed.")
-                y_prob = None
 
-            if y_prob is not None:
-                y_true_bin = y_true.map({"Normal":0, "Intrusion":1}).values
+                elif dataset_choice=="CICIDS-2017" and class_type == "Binary":
+                    possible_actual_cols = ["Label", "label", "Class", "class", "Actual", "actual"]
+                    actual_col = None
 
-                fpr, tpr, thresholds = roc_curve(y_true_bin, y_prob)
-                roc_auc = auc(fpr, tpr)
+                    for col in possible_actual_cols:
+                        if col in df.columns:
+                            actual_col = col
+                            break
 
-                st.write("ROC Curve:")
-                fig_roc = px.line(
-                    x=fpr, y=tpr,
-                    labels=dict(x='False Positive Rate', y='True Positive Rate'),
-                    width=600, height=400
-                )
+                    if actual_col is None:
+                        st.error("Error: No actual label column found in uploaded dataset.")
+                        st.stop()
 
-                fig_roc.add_shape(
-                    type='line', line=dict(dash='dash', color='gray'),
-                    x0=0, x1=1, y0=0, y1=1
-                )
+                    y_true = df[actual_col].astype(str)
+                    mapping = {
+                        0: "Normal",
+                        1: "Intrusion",
+                        "0": "Normal",
+                        "1": "Intrusion",
+                        "BENIGN": "Normal",
+                        "benign": "Normal",
+                        "Attack": "Intrusion",
+                        "attack": "Intrusion"
+                    }
+                    y_true = y_true.replace(mapping)
+                    y_pred = results_df["Prediction"].astype(str).replace(mapping)
+                    labels = ["Normal", "Intrusion"]
+                    y_true = y_true.apply(lambda x: x if x in labels else "Intrusion")
+                    y_pred = y_pred.apply(lambda x: x if x in labels else "Intrusion")
+
+                    cm = confusion_matrix(y_true, y_pred, labels=labels)
+                    cm_df = pd.DataFrame(cm, index=labels, columns=labels)
+
+                    fig_cm = px.imshow(
+                        cm_df,
+                        text_auto=True,
+                        color_continuous_scale="Blues",
+                        labels=dict(x="Predicted", y="Actual", color="Count")
+                    )
+                    fig_cm.update_layout(
+                        height=350,
+                        margin=dict(l=10, r=10, t=40, b=10)
+                    )
+                    st.plotly_chart(fig_cm, width=500, config={"responsive": True})
+                            
+                elif dataset_choice == "CICIDS-2017" and class_type == "Multiclass":
+                    labels = ["Benign", "DoS", "DDoS", "Intrusion"]
+                    def map_cicids_label(label):
+                        if pd.isna(label):
+                            return None
+                        label = str(label).strip().upper()
+                        if label == "BENIGN":
+                            return "Benign"
+                        elif label == "DOS":
+                            return "DoS"
+                        elif label == "DDOS":
+                            return "DDoS"
+                        else:
+                            return "Intrusion"
+                    possible_actual_cols = ["Label", "label", "Class", "class", "Actual", "actual"]
+                    actual_col = None
+
+                    for col in possible_actual_cols:
+                        if col in df.columns:
+                            actual_col = col
+                            break
+
+                    if actual_col is None:
+                        st.error("❌ No actual label column found in CICIDS dataset.")
+                        st.stop()
+                        
+                    y_true = df[actual_col].apply(map_cicids_label)
+                    y_pred = results_df["Prediction"].apply(map_cicids_label)
+
+                    mask = y_true.notna() & y_pred.notna()
+                    y_true = y_true[mask]
+                    y_pred = y_pred[mask]
+
+                    cm = confusion_matrix(y_true, y_pred, labels=labels)
+                    cm_df = pd.DataFrame(cm, index=labels, columns=labels)
+
+                    fig_cm = px.imshow(
+                        cm_df,
+                        text_auto=True,
+                        color_continuous_scale="Purples",
+                        labels=dict(x="Predicted", y="Actual", color="Count")
+                    )
+                    fig_cm.update_layout(
+                        height=350,
+                        margin=dict(l=10, r=10, t=40, b=10)
+                    )
+                    st.plotly_chart(fig_cm, config={"Resposive":True},width=500)   
+
+            if dataset_choice == "NSL-KDD" or dataset_choice == "CICIDS-2017" and class_type == "Binary":
+                if hasattr(model, "predict_proba"):
+                    y_prob = model.predict_proba(X)[:, 1]  
+                else:
+                    st.warning("Model does not support probability prediction. ROC curve cannot be computed.")
+                    y_prob = None
+
+                if y_prob is not None:
+                    y_true_bin = y_true.map({"Normal":0, "Intrusion":1}).values
+
+                    fpr, tpr, thresholds = roc_curve(y_true_bin, y_prob)
+                    roc_auc = auc(fpr, tpr)
+
+                    st.write("ROC Curve:")
+                    fig_roc = go.Figure()
+                    fig_roc.add_trace(go.Scatter(
+                        x=fpr,
+                        y=tpr,
+                        mode='lines',
+                        name='ROC Curve',
+                        line=dict(width=2)
+                    ))
+                    fig_roc.add_trace(go.Scatter(
+                        x=[0, 1],
+                        y=[0, 1],
+                        mode='lines',
+                        name='Random',
+                        line=dict(dash='dash', color='gray')
+                    ))
+                    fig_roc.add_annotation(
+                        x=fpr[-1],
+                        y=tpr[-1],
+                        text=f"AUC = {roc_auc:.3f}",
+                        showarrow=True,
+                        arrowhead=2
+                    )
+                    fig_roc.update_layout(
+                        xaxis_title='False Positive Rate',
+                        yaxis_title='True Positive Rate',
+                        width=600,
+                        height=400,
+                        margin=dict(l=10, r=10, t=40, b=10),
+                        template='plotly_white',
+                        showlegend =False
+                    )
+                    st.plotly_chart(fig_roc, config={"responsive": True})
             
-                fig_roc.add_annotation(
-                    x=fpr[-1], y=tpr[-1],
-                    text=f"AUC = {roc_auc:.3f}",
-                    showarrow=True,
-                    arrowhead=2
+            else:
+                X_test = df.drop(columns=["Label"])
+                X_test_scaled = scaler.transform(X_test)
+                y_test_str = df["Label"]
+                y_test_str = y_test_str.apply(
+                    lambda x: "Benign" if str(x).upper() == "BENIGN"
+                    else "DoS" if "DOS" in str(x).upper() and "DDOS" not in str(x).upper()
+                    else "DDoS" if "DDOS" in str(x).upper()
+                    else "Intrusion"
                 )
+                y_test = label_encoder.transform(y_test_str)
+                if hasattr(model, "predict_proba"):
+                    y_prob = model.predict_proba(X_test_scaled)
+                    class_names = label_encoder.classes_
+                    n_classes = len(class_names)
+                    y_test_bin = label_binarize(
+                        y_test,
+                        classes=range(n_classes)
+                    )
+                    st.write("ROC Curve:")
+                    fig_roc = go.Figure()
+                    class_colors = {
+                        "Benign": "Blue",      
+                        "DoS": "Yellow",         
+                        "DDoS": "Violet",        
+                        "Intrusion": "Red"   
+                    }
+                    for i, class_name in enumerate(class_names):
+                        fpr, tpr, _ = roc_curve(y_test_bin[:, i], y_prob[:, i])
+                        roc_auc = auc(fpr, tpr)
 
-                st.plotly_chart(fig_roc, config={"responsive": True})
+                        fig_roc.add_trace(
+                            go.Scatter(
+                                x=fpr,
+                                y=tpr,
+                                mode="lines",
+                                name=f"{class_name} (AUC = {roc_auc:.3f})",
+                                line=dict(
+                                    width=2,
+                                    color=class_colors.get(class_name, "#000000")
+                                )
+                            )
+                        )
+                    fig_roc.add_shape(
+                        type="line",
+                        x0=0, x1=1, y0=0, y1=1,
+                        line=dict(dash="dash", color="gray")
+                    )
+                    fig_roc.update_layout(
+                        xaxis_title="False Positive Rate",
+                        yaxis_title="True Positive Rate",
+                        width=600,
+                        height=400,
+                        legend_title="Classes",
+                        margin=dict(l=10, r=10, t=40, b=10)
+                    )
+                    st.plotly_chart(fig_roc, config={"responsive": True})
+                else:
+                    st.warning("Model does not support probability prediction. ROC curve cannot be computed.")
 
             st.subheader("Full Predicted Dataset")
             st.dataframe(results_df)  
