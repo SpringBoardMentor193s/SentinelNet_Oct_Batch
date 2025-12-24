@@ -203,57 +203,92 @@ else:
         features_path = MODELS_MAP["CICIDS-2017"]["Feature_Columns"]
         label_encoder_path = MODELS_MAP["CICIDS-2017"].get("Label_Encoder")
 
+# -------------------- Live Monitoring --------------------
+
+if mode == "Live Monitoring":
+    st.subheader("Live Network Monitoring")
+
+    col1, col2, col3= st.columns(3)
+    with col1:
+        if st.button("Start Monitoring"):
+            st.session_state.monitoring = True
+            st.info("Live monitoring started...")
+
+    with col2:
+        if st.button("Stop Monitoring"):
+            st.session_state.monitoring = False    
+            st.info("Live Monitoring Stoped.")
+
+    with col3:
+        if st.button("Clear Data"):
+            st.session_state.live_results = []
+            st.info("Data cleared.")
+    
+    m1, m2, m3, m4=st.columns(4)
+    with m1:
+            st.metric("Total Packets", "0")
+    with m2:
+            st.metric("Normal", "0")
+    with m3:
+            st.metric("Intrusions", "0")
+    with m4:
+            st.metric("Intrusion Rate", "0%")
+        
+    st.subheader("Recent Alerts")
+    st.info("No alerts to display.")
+    st.stop()      
  
 # -------------------- File Analysis --------------------
-st.subheader("File Analysis")
+else:
+    st.subheader("File Analysis")
 
-uploaded_file = st.file_uploader("Upload CSV (files)", type=["csv"])
-if uploaded_file is None:
-        st.stop()
+    uploaded_file = st.file_uploader("Upload CSV (files)", type=["csv"])
+    if uploaded_file is None:
+            st.stop()
 
-def load_uploaded_csv(uploaded_file):
-        uploaded_file.seek(0)
-        try:
-            df=pd.read_csv(uploaded_file)
-        except Exception:
+    def load_uploaded_csv(uploaded_file):
             uploaded_file.seek(0)
-            df=pd.read_csv(uploaded_file, header=None)
-        if dataset_choice =="NSL-KDD":
-            if df.shape[1] == len(NSL_KDD_COLUMN_NAMES):
-                df.columns = NSL_KDD_COLUMN_NAMES
-            else:
-                st.error(
-                    f"Uploaded CSV has {df.shape[1]} columns,"
-                    f"but NSL-KDD requires {len(NSL_KDD_COLUMN_NAMES)} columns."
-                )
-                st.stop()
-        return df
+            try:
+                df=pd.read_csv(uploaded_file)
+            except Exception:
+                uploaded_file.seek(0)
+                df=pd.read_csv(uploaded_file, header=None)
+            if dataset_choice =="NSL-KDD":
+                if df.shape[1] == len(NSL_KDD_COLUMN_NAMES):
+                    df.columns = NSL_KDD_COLUMN_NAMES
+                else:
+                    st.error(
+                        f"Uploaded CSV has {df.shape[1]} columns,"
+                        f"but NSL-KDD requires {len(NSL_KDD_COLUMN_NAMES)} columns."
+                    )
+                    st.stop()
+            return df
 
-df = load_uploaded_csv(uploaded_file)
-st.write("### Uploaded Data Review")
-st.dataframe(df.head())
+    df = load_uploaded_csv(uploaded_file)
+    st.write("### Uploaded Data Review")
+    st.dataframe(df.head())
 
-try:
-        model = load_pickle(model_path)
-except FileNotFoundError as e:
-        st.error(str(e))
-        st.stop()
+    try:
+            model = load_pickle(model_path)
+    except FileNotFoundError as e:
+            st.error(str(e))
+            st.stop()
 
-scaler = try_load_pickle(scaler_path)
-if scaler is None:
-        st.error(f"Scaler not found at `{scaler_path}`.")
-        st.stop()
+    scaler = try_load_pickle(scaler_path)
+    if scaler is None:
+            st.error(f"Scaler not found at `{scaler_path}`.")
+            st.stop()
 
-feature_columns = try_load_pickle(features_path)
-if feature_columns is None:
-        st.error(f"Feature columns not found at `{features_path}`.")
-        st.stop()
+    feature_columns = try_load_pickle(features_path)
+    if feature_columns is None:
+            st.error(f"Feature columns not found at `{features_path}`.")
+            st.stop()
 
-label_encoder = None
-if dataset_choice == "CICIDS-2017":
-        label_encoder = try_load_pickle(label_encoder_path)
+    label_encoder = None
+    if dataset_choice == "CICIDS-2017":
+            label_encoder = try_load_pickle(label_encoder_path)
 
-if st.button("Evaluate"):
+    if st.button("Evaluate"):
         t0 = datetime.now()
         st.info("Preprocessing and predicting...")
         try:
